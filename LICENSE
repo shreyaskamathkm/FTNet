@@ -28,7 +28,15 @@ Acknowledgement
 
 Provide proper attribution to The Panetta Lab and Tufts University, and any third party Software owners (if applicable) as the source of the Licensed Software, and name the Software that you have used. Whenever Licensed Software or Derivatives (as such term is defined below) are used, there needs to be a specific sentence, as a footnote, stating that data was provided by The Panetta Lab and Tufts University (in association with the third party Software owners, if applicable). Any publication relating to the Software or Derivatives (as such term is defined below) should name the source of the Software and should state that The Panetta Lab’s and Tufts University’s endorsement of users' views, products or services is not stated or implied in any way. The following format is to be used when providing attribution:
 
-[The Panetta Lab’s Software] [Title of content] [Location on GDD website] [Date accessed and/or downloaded]
+@ARTICLE{9585453,  
+author={Panetta, Karen and Shreyas Kamath, K. M. and Rajeev, Srijith and Agaian, Sos S.},
+journal={IEEE Access},   
+title={FTNet: Feature Transverse Network for Thermal Image Semantic Segmentation},   
+year={2021},  
+volume={9},  
+number={},  
+pages={145212-145227},  
+doi={10.1109/ACCESS.2021.3123066}}
 
 
 Reproduction or Sharing of Software
