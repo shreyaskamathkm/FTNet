@@ -13,7 +13,7 @@ RUNDIR=./../../../Training_Paper/Lightning/"$MODEL"_"$BACKBONE"_"$FILTERS"_"$EDG
 mkdir -p "$RUNDIR"
 
 ## Pretraining
-python  ./lightning_scripts/main.py \
+python  ./../lightning_scripts/main.py \
 --mode 'train' \
 --no-of-filters "$FILTERS" \
 --edge-extracts "$EDGES" \
@@ -60,7 +60,7 @@ DATASET2='soda'
 RUNDIR2=./../../../Training_Paper/Lightning/"$MODEL"_"$BACKBONE"_"$FILTERS"_"$EDGES"_"$NBLOCKS"/"$DATASET2"/
 mkdir -p "$RUNDIR2"
 
-python  ./lightning_scripts/main.py \
+python  ./../lightning_scripts/main.py \
 --mode 'train' \
 --train_only False \
 --no-of-filters "$FILTERS" \
@@ -103,7 +103,7 @@ python  ./lightning_scripts/main.py \
 
 
 ## Testing
-python  ./lightning_scripts/main.py \
+python  ./../lightning_scripts/main.py \
 --mode 'test' \
 --model "$MODEL" \
 --edge-extracts "$EDGES" \

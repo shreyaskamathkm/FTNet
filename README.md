@@ -1,4 +1,5 @@
 
+
 # FTNet
 
 This repository is an official PyTorch implementation of the paper **" [FTNet: Feature Transverse Network for Thermal Semantic Segmentation](https://ieeexplore.ieee.org/abstract/document/9585453) "**
@@ -28,25 +29,13 @@ cd FTNet
 ## Dependencies
 Please run the following to meet the requirements of the model
 ```
-pip install -r Codes/src/requirements.txt
-```
-
-
-## Quick start (Demo)
-You can test our semantic segemntation algorithm with your own images. Place your images in ``test_images`` folder. (like ``test_images/<your_image>``). We support **.png**, **.jpg**, **.jpeg**, **.bmp**, **.tif**  and **.tiff** files.
-
-Run the script in ``codes`` folder. Before you run the test, please fill in the appropriate details in the **.sh**  file before you execute.
-
-```bash
-cd codes       # You are now in */DPIENet/codes
-sh test.sh
+pip install -r requirements.txt
 ```
 ## Setting up the environment for training and testing
 We train and test the models on three dataset:
 - [SODA Dataset](https://arxiv.org/abs/1907.10303) which can be downloaded from [here](https://drive.google.com/drive/folders/1ZF2vDk9j69kP5U0zcp-liOBk-atWcw-5).
 - [MFN Dataset](https://ieeexplore.ieee.org/document/8206396) which can be downloaded from [here](https://www.mi.t.u-tokyo.ac.jp/static/projects/mil_multispectral/). Their github repo can be found [here](https://github.com/haqishen/MFNet-pytorch)
 - [SCUT-Seg Dataset](https://www.sciencedirect.com/science/article/abs/pii/S1350449520306769)  which can be downloaded from [here](https://drive.google.com/drive/folders/1soPrrx2_AXNzbrlOE89i5aYb3TxbmcB5). Their github repo can be found [here](https://github.com/haitaobiyao/MCNet)
-- 
 
 
 #### Dataset Structure
@@ -89,13 +78,16 @@ We train and test the models on three dataset:
 	│   	        └── test
     └── ...
 
-The new processed dataset will be used for training purposes. You can now train DPIENet by yourself. Training script is provided in the  ``*/DPIENet/codes`` folder. efore you run the test, please fill in the appropriate details in the **.sh**  file before you execute.
+The new processed dataset will be used for training purposes. You can now train FTNet by yourself. Training and testing script is provided in the  ``*/FTNet/Codes/src/bash`` folder. Before you run them, please fill in the appropriate details in the **.sh**  file before you execute.
 
 ```bash
-cd codes       # You are now in */src/bash/
-sh train.sh
+cd /Codes/src/bash       # You are now in */src/bash/
+bash Train_and_test.sh     # To train and test one dataset. eg: SODA
 ```
-
+```bash
+cd /Codes/src/bash       # You are now in */src/bash/
+bash Train_and_test_all.sh     # To train and test more than one dataset. eg: SODA, MFN, SCUT-Seg
+```
 
 <!-- LICENSE -->
 ## License
@@ -125,3 +117,4 @@ doi={10.1109/ACCESS.2021.3123066}}
 * [Metrics](https://github.com/mseg-dataset/mseg-semantic)
 * [ResNet variants](https://github.com/zhanghang1989/ResNeSt)
 * [Logger](https://detectron2.readthedocs.io/en/latest/_modules/detectron2/utils/logger.html)
+
