@@ -1,3 +1,4 @@
+
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ftnet-feature-transverse-network-for-thermal/thermal-image-segmentation-on-soda-dataset)](https://paperswithcode.com/sota/thermal-image-segmentation-on-soda-dataset?p=ftnet-feature-transverse-network-for-thermal)
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ftnet-feature-transverse-network-for-thermal/thermal-image-segmentation-on-scut-seg)](https://paperswithcode.com/sota/thermal-image-segmentation-on-scut-seg?p=ftnet-feature-transverse-network-for-thermal) 
@@ -8,7 +9,7 @@
 
 This repository is an official PyTorch implementation of the paper **" [FTNet: Feature Transverse Network for Thermal Semantic Segmentation](https://ieeexplore.ieee.org/abstract/document/9585453) "**
 
-
+![Main Figure](https://github.com/shreyaskamathkm/FTNet/blob/main/images/Main%20Figure.png)
 We provide scripts for the models from our paper. You can train your own model from scratch, or use pretrained models for testing.
 
 ## FTNet Model Weights
