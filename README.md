@@ -1,4 +1,8 @@
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ftnet-feature-transverse-network-for-thermal/thermal-image-segmentation-on-soda-dataset)](https://paperswithcode.com/sota/thermal-image-segmentation-on-soda-dataset?p=ftnet-feature-transverse-network-for-thermal)
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ftnet-feature-transverse-network-for-thermal/thermal-image-segmentation-on-scut-seg)](https://paperswithcode.com/sota/thermal-image-segmentation-on-scut-seg?p=ftnet-feature-transverse-network-for-thermal) 
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/ftnet-feature-transverse-network-for-thermal/thermal-image-segmentation-on-mfn-dataset)](https://paperswithcode.com/sota/thermal-image-segmentation-on-mfn-dataset?p=ftnet-feature-transverse-network-for-thermal) 
 
 # FTNet
 
