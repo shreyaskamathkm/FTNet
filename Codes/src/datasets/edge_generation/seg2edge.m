@@ -1,8 +1,8 @@
 % This function takes an input segment and produces binary bdrys.
 % Multi-channel input segments are supported by the function.
 %%%
-Code Adaptted from
-https://github.com/Lavender105/DFF/blob/152397cec4a3dac2aa86e92a65cc27e6c8016ab9/lib/matlab/modules/data/seg2edge.m
+%Code Adapted from
+%https://github.com/Lavender105/DFF/blob/152397cec4a3dac2aa86e92a65cc27e6c8016ab9/lib/matlab/modules/data/seg2edge.m
 %%%
 function [idxEdge] = seg2edge(seg, radius, labelIgnore, edge_type)
 % Get dimensions
