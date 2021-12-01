@@ -1,13 +1,13 @@
 clc;clear all;close all;
 %  , 'soda'
-datasets = {'scutseg'};
-path = 'E:\Work\Deep_Learning\Thermal_Segmentation\Dataset/'
-labels_path = {'Cityscapes_thermal\CITYSCAPE_5000/', 'InfraredSemanticLabel-20210430T150555Z-001\SODA/', 'SCUTSEG/','MFNDataset/',  };
+datasets = {'cityscapes','soda','scutseg','mfn'};
+path = 'D:\processed_dataset/';
+labels_path = {'CITYSCAPE_5000/', 'SODA/', 'SCUTSEG/','MFN/',  };
 radius = [2,1,1,1];
 % numWorker = 6; % Number of matlab workers for parallel computing
 % delete(gcp('nocreate'));
 % parpool('local', numWorker);
-spfor idxSet = 1:length(datasets)
+for idxSet = 1:length(datasets)
     if strcmp(datasets{idxSet}, 'cityscapes')
         setList = {'train'};
         data_path = labels_path{1};
@@ -20,7 +20,7 @@ spfor idxSet = 1:length(datasets)
         setList = {'train', 'test'};
         data_path = labels_path{3};
         r = radius(3);
-    else
+    elseif strcmp(datasets{idxSet}, 'mfn')
         setList = {'train', 'val', 'test'};
         data_path = labels_path{4};
         r = radius(4);
