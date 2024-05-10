@@ -6,6 +6,9 @@ numpy
 opencv_python
 pandas
 Pillow
+ptflops
+pycocotools
+pytorch_lightning
 rfconv
 scikit_image
 scikit_learn
@@ -13,11 +16,8 @@ seaborn==0.11.2
 skimage
 tabulate
 termcolor
+torch
+torchmetrics
+torchvision
 tqdm
 wandb
-torch==1.6.0
-torchmetrics==0.5.1
-torchvision==0.10.0
-ptflops==0.6.6
-pycocotools==2.0.2
-pytorch_lightning==1.3.4

@@ -1,4 +1,4 @@
-Overview of Agreement: 
+Overview of Agreement:
 
 Permissions: Private use, non-commercial use, reproduction & dissemination
 Conditions: License & copyright notice
@@ -28,14 +28,14 @@ Acknowledgement
 
 Provide proper attribution to The Panetta Lab and Tufts University, and any third party Software owners (if applicable) as the source of the Licensed Software, and name the Software that you have used. Whenever Licensed Software or Derivatives (as such term is defined below) are used, there needs to be a specific sentence, as a footnote, stating that data was provided by The Panetta Lab and Tufts University (in association with the third party Software owners, if applicable). Any publication relating to the Software or Derivatives (as such term is defined below) should name the source of the Software and should state that The Panetta Lab’s and Tufts University’s endorsement of users' views, products or services is not stated or implied in any way. The following format is to be used when providing attribution:
 
-@ARTICLE{9585453,  
+@ARTICLE{9585453,
 author={Panetta, Karen and Shreyas Kamath, K. M. and Rajeev, Srijith and Agaian, Sos S.},
-journal={IEEE Access},   
-title={FTNet: Feature Transverse Network for Thermal Image Semantic Segmentation},   
-year={2021},  
-volume={9},  
-number={},  
-pages={145212-145227},  
+journal={IEEE Access},
+title={FTNet: Feature Transverse Network for Thermal Image Semantic Segmentation},
+year={2021},
+volume={9},
+number={},
+pages={145212-145227},
 doi={10.1109/ACCESS.2021.3123066}}
 
 
@@ -43,7 +43,7 @@ Reproduction or Sharing of Software
 
 You agree to not reproduce, share, or further disseminate the original Licensed Software to others without written permission from Tufts, and not use the Licensed Software for commercial purposes without written permission from Tufts. If further distribution or dissemination is given, you warrant that you will not remove or export any part of the Licensed Software from the United States except in full compliance with all applicable laws, including export regulations.
 
-Title and copyright to the Licensed Software and any associated documentation will remain with Tufts University. You may make modifications to the Licensed Software and/or integrate the Licensed Software into your own software; provided that you agree that any thing created based on or through the use of the Licensed Software will be considered a derivative of the Licensed Software (“Derivative”). 
+Title and copyright to the Licensed Software and any associated documentation will remain with Tufts University. You may make modifications to the Licensed Software and/or integrate the Licensed Software into your own software; provided that you agree that any thing created based on or through the use of the Licensed Software will be considered a derivative of the Licensed Software (“Derivative”).
 
 Under no circumstances may you sell the Licensed Software or Derivatives without a commercial use license from Tufts to the Licensed Software. Some Software contained in the Licensed Software may have been shared by Tufts courtesy of third party Software owners, which are identified in the Licensed Software. If you wish to redistribute or reuse any portion of any Software that has been provided by a third party data owner, it is your responsibility to obtain permission from the Software owner.
 
@@ -57,15 +57,12 @@ Disclaimer of Warranty/Limitation of Liability
 
 THE LICENSED SOFTWARE AND ANY INFORMATION SUPPLIED HEREUNDER ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR USE OF A PARTICULAR PURPOSE, OR NONINFRINGEMENT OF THIRD PARTY RIGHTS, AND WITHOUT ANY ACCOMPANYING SERVICES, SUPPORT OR IMPROVEMENTS FROM TUFTS UNIVERSITY OR THE PANETTA LAB.
 
-Tufts University does not warrant, and hereby expressly disclaims, any warranties of any kind, either express or implied, including with respect to the accuracy, adequacy or completeness of any of the Licensed Software or any information supplied hereunder. 
+Tufts University does not warrant, and hereby expressly disclaims, any warranties of any kind, either express or implied, including with respect to the accuracy, adequacy or completeness of any of the Licensed Software or any information supplied hereunder.
 
 YOU AGREE THAT TUFTS UNIVERSITY WILL NOT BE LIABLE TO YOU FOR ANY LOSS OR DAMAGES, EITHER ACTUAL OR CONSEQUENTIAL, ARISING OUT OF OR RELATING TO THESE TERMS, OR TO YOUR (OR ANY THIRD PARTY'S) USE OR INABILITY TO USE THE LICENSED SOFTWARE OR ANY INFORMATION SUPPLIED HEREUNDER. IN PARTICULAR, TUFTS WILL HAVE NO LIABILTY FOR ANY CONSEQUENTIAL, INDIRECT, PUNITIVE, SPECIAL OR INCIDENTAL DAMAGES, WHETHER FORESEEABLE OR UNFORESEEABLE, ARISING OUT OF OR RELATING TO THESE TERMS, YOUR USE OR INABILITY TO USE THE LICENSED SOFTWARE OR ANY INFORMATION SUPPLIED HEREUNDER, WHETHER BASED IN CONTRACT, TORT, STATUTORY OR OTHER LAW, EXCEPT ONLY IN THE CASE OF DEATH OR PERSONAL INJURY WHERE AND ONLY TO THE EXTENT THAT APPLICABLE LAW REQUIRES SUCH LIABILITY.
 
 Trademarks
-The logo, name and all graphics of Tufts University or any of its schools, clinics or affiliates, are trademarks of Tufts or its affiliates. Use, reproduction, copying or redistribution of trademarks, without the written permission of Tufts or its affiliates is prohibited. 
+The logo, name and all graphics of Tufts University or any of its schools, clinics or affiliates, are trademarks of Tufts or its affiliates. Use, reproduction, copying or redistribution of trademarks, without the written permission of Tufts or its affiliates is prohibited.
 
 Indemnification
 You agree to indemnify and hold Tufts harmless from any claims, losses or damages, including legal fees, arising out of or related to the exercise of any rights granted under this Agreement or your breach of these Terms and to fully cooperate in Tufts’ defense against any such claims.
-
-
-

@@ -1,0 +1,64 @@
+[tool.poetry]
+name = "ftnet"
+version = "0.1.0"
+description = "Thermal imaging is a process of using infrared radiation and thermal energy to collect information about objects. It is superior to visible imaging for its ability to operate in darkness and tolerate illumination variations. In addition, it has potential to penetrate smoke, aerosol, dust, and mist, which are critical inhibitors for visible imaging applications, including semantic segmentation. Unfortunately, current state-of-the-art image semantic segmentation methods (i) mainly concentrate on visible spectrum images, which do not adequately capture the context of corresponding pixels, particularly edge details in thermal images, and (ii) accept a trade-off between higher accuracy and lower speed, or vice-versa. Here, a novel end-to-end trainable convolutional neural network architecture, feature transverse network (FTNet), has been proposed to solve the aforementioned problems. FTNet captures and optimizes feature representation at the multi-scale resolution, thereby improving the capability to process high-resolution images and producing quality output with a lower computational cost. Extensive computer experimentations were conducted on publicly available benchmarking thermal datasets, including SODA, MFNet, and SCUT-Seg, to demonstrate the effectiveness of the proposed FTNet compared to state-of-the-art methods. This comparison includes multiple aspects, including the quantitative accuracy and speed of the various approaches."
+authors = ["Shreyas Kamath <shreyaskamathkm@gmail.com>, Srijith Rajeev <srijith2311@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+download = "^0.3.5"
+tqdm = "^4.66.4"
+matplotlib = "^3.8.4"
+numpy = "^1.26.4"
+opencv-python = "^4.9.0.80"
+torch = [
+    {version = "^2.2.1", source="pypi", markers = "sys_platform == 'darwin'"},
+    {version = "^2.2.1", source = "torchgpu", markers = "sys_platform == 'linux'"}
+]
+torchvision = [
+    {version = "^0.17.1", source="pypi", markers = "sys_platform == 'darwin'"},
+    {version = "^0.17.1", source = "torchgpu", markers = "sys_platform == 'linux'"}
+]
+lightning = "^2.2.4"
+toml = "^0.10.2"
+pydantic = "^2.7.1"
+tabulate = "^0.9.0"
+rich = "^13.7.1"
+wandb = "^0.17.0"
+tensorboard = "^2.16.2"
+seaborn = "^0.13.2"
+
+[[tool.poetry.source]]
+name = "torchcpu"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
+[[tool.poetry.source]]
+name = "torchgpu"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "explicit"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+
+[tool.ruff.lint]
+# NOTE: Synchoronize the ignores with .flake8
+ignore = [
+    "F403",
+    "E402",
+    "E731",
+
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+    "F401",
+]

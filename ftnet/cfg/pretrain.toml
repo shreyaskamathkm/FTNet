@@ -1,0 +1,56 @@
+[task]
+mode = "train"
+train_only=true
+debug = true
+
+[trainer]
+loss_weight = 20
+epochs = 1
+train_batch_size = 16
+val_batch_size = 16
+
+[model]
+no_of_filters = 128
+edge_extracts = [3]
+num_blocks = 2
+model = "ftnet"
+pretrained_base = true
+backbone = "resnext50_32x4d"
+dilation = false
+
+[dataset]
+dataset = "cityscapes_thermal_combine"
+dataset_path = "../../../../Thermal_Segmentation/Dataset/"
+base_size = [520,520]
+crop_size = [480,480]
+
+
+[optimizer]
+optimizer = "SGD"
+lr = 0.01
+momentum = 0.9
+weight_decay = 0.0001
+beta1 = 0.9
+beta2 = 0.999
+epsilon = 1e-8
+
+[scheduler]
+scheduler_type = "poly_warmstartup"
+warmup_iters = 0
+warmup_factor = 0.3333
+warmup_method = "linear"
+
+[checkpoint]
+# resume = none
+save_dir = './test/'
+# test_checkpoint = none
+save_images = false
+save_images_as_subplots = false
+
+[compute]
+gpus = 1
+num_nodes = 1
+distributed_backend = "dp"
+wandb_name_ext = ""
+seed = 0
+workers = 16
