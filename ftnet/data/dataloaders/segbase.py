@@ -8,19 +8,28 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image, ImageFilter, ImageOps
+import logging
+from pathlib import Path
 
+logger = logging.getLogger(__name__)
 __all__ = ["SegmentationDataset"]
 
 
 class SegmentationDataset:
     """Segmentation Base Dataset."""
 
-    def __init__(self, root, split, mode, base_size=520, crop_size=480, logger=None):
+    def __init__(
+        self,
+        root: Path,
+        split: str,
+        mode: str,
+        base_size: list[int] = 520,
+        crop_size: list[int] = 480,
+    ):
         super(SegmentationDataset, self).__init__()
         self.root = root
-        self.logger = logger
         self.split = split
-        self.mode = mode if mode is not None else split
+        self.mode = mode or split
         self.base_size = base_size
         self.crop_size = crop_size
 

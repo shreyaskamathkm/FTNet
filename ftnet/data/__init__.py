@@ -6,6 +6,9 @@ from .dataloaders import (
     SCUTSEGDataset,
 )
 
+__all__ = ["datasets", "get_segmentation_dataset"]
+
+
 datasets = {
     "cityscapes_thermal_combine": CityscapesCombineThermalDataset,
     "cityscapes_thermal_split": CityscapesThermalsSplitDataset,
@@ -15,6 +18,6 @@ datasets = {
 }
 
 
-def get_segmentation_dataset(name, **kwargs):
+def get_segmentation_dataset(name: str, **kwargs: str):
     """Segmentation Datasets."""
     return datasets[name.lower()](**kwargs)

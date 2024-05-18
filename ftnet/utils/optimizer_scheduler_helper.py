@@ -1,90 +1,101 @@
+import logging
 import warnings
+from argparse import Namespace
+from typing import Any, List, Union
+
 import torch.optim as optim
+from torch.optim import Optimizer
+from torch.optim.lr_scheduler import _LRScheduler, StepLR, MultiStepLR, OneCycleLR
+
+# Assuming these are defined elsewhere in the codebase
 from core.optimizers.adabound import AdaBound
 from core.schedulers.lr_scheduler import WarmupMultiStepLR, WarmupPolyLR
-from torch.optim import lr_scheduler
-from torch.optim.lr_scheduler import _LRScheduler
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["make_optimizer", "make_scheduler"]
 
 
-def make_optimizer(args, params, logger=None):
-    if args.optimizer.lower() == "sgd":
+def make_optimizer(args: Namespace, params: Union[List[dict], Any]) -> Optimizer:
+    optimizer_name = args.optimizer.name.lower()
+    kwargs = {}
+
+    if optimizer_name == "sgd":
         optimizer_function = optim.SGD
-        kwargs = {"momentum": args.momentum, "nesterov": args.nesterov}
-        if logger is not None:
-            logger.info("Optimizer SGD is being used")
-
-    elif args.optimizer.lower() == "adam":
+        kwargs |= {
+            "momentum": args.optimizer.momentum,
+            "nesterov": args.optimizer.nesterov,
+        }
+        logger.info("Optimizer SGD is being used")
+    elif optimizer_name == "adam":
         optimizer_function = optim.Adam
-        kwargs = {"betas": (args.beta1, args.beta2), "eps": args.epsilon}
-        if logger is not None:
-            logger.info("Optimizer ADAM is being used")
-
-    elif args.optimizer.lower() == "rmsprop":
+        kwargs |= {
+            "betas": (args.optimizer.beta1, args.optimizer.beta2),
+            "eps": args.optimizer.epsilon,
+        }
+        logger.info("Optimizer ADAM is being used")
+    elif optimizer_name == "rmsprop":
         optimizer_function = optim.RMSprop
-        kwargs = {"eps": args.epsilon}
-        if logger is not None:
-            logger.info("Optimizer RMSprop is being used")
-
-    elif args.optimizer.lower() == "adabound":
+        kwargs |= {"eps": args.optimizer.epsilon}
+        logger.info("Optimizer RMSprop is being used")
+    elif optimizer_name == "adabound":
         optimizer_function = AdaBound
-        kwargs = {"eps": args.epsilon, "betas": (args.beta1, args.beta2)}
-        if logger is not None:
-            logger.info("Optimizer AdaBound is being used")
-
-    elif args.optimizer.lower() == "adamw":
+        kwargs |= {
+            "eps": args.optimizer.epsilon,
+            "betas": (args.optimizer.beta1, args.optimizer.beta2),
+        }
+        logger.info("Optimizer AdaBound is being used")
+    elif optimizer_name == "adamw":
         optimizer_function = optim.AdamW
-        kwargs = {"eps": args.epsilon, "betas": (args.beta1, args.beta2)}
-        if logger is not None:
-            logger.info("Optimizer AdamW is being used")
+        kwargs |= {
+            "eps": args.optimizer.epsilon,
+            "betas": (args.optimizer.beta1, args.optimizer.beta2),
+        }
+        logger.info("Optimizer AdamW is being used")
+    else:
+        raise ValueError(f"Unsupported optimizer name: {args.optimizer.name}")
 
     if isinstance(params, list):
-        if not any("weight_decay" in s for s in params):
+        if all("weight_decay" not in p for p in params):
             kwargs["weight_decay"] = args.weight_decay
     else:
-        kwargs["lr"] = args.lr
+        kwargs["lr"] = args.optimizer.lr
 
     return optimizer_function(params, **kwargs)
 
 
 class ConstantLR(_LRScheduler):
-    def __init__(self, optimizer, last_epoch=-1):
-        super(ConstantLR, self).__init__(optimizer, last_epoch)
+    def __init__(self, optimizer: Optimizer, last_epoch: int = -1) -> None:
+        super().__init__(optimizer, last_epoch)
 
-    def get_lr(self):
-        return [base_lr for base_lr in self.base_lrs]
+    def get_lr(self) -> List[float]:
+        return list(self.base_lrs)
 
 
-def make_scheduler(args, optimizer, iters_per_epoch=None, logger=None, last_epoch=-1):
-    if args.scheduler_type.lower() == "step":
-        scheduler = lr_scheduler.StepLR(
+def make_scheduler(
+    args: Namespace,
+    optimizer: Optimizer,
+    iters_per_epoch: int = None,
+    logger: logging.Logger = None,
+    last_epoch: int = -1,
+) -> _LRScheduler:
+    scheduler_type = args.scheduler_type.lower()
+
+    if scheduler_type == "step":
+        scheduler = StepLR(
             optimizer, step_size=args.lr_decay, gamma=args.gamma, last_epoch=last_epoch
         )
         scheduler.__setattr__("__interval__", "epoch")
-        if logger is not None:
-            logger.info("Loading Step scheduler")
-
-    elif args.scheduler_type.find("step") >= 0:
-        milestones = args.scheduler_type.split("_")
-        milestones.pop(0)
-        milestones = list(map(lambda x: int(x), milestones))
-        scheduler = lr_scheduler.MultiStepLR(
+        logger.info("Loading Step scheduler")
+    elif "step" in scheduler_type:
+        milestones = list(map(int, scheduler_type.split("_")[1:]))
+        scheduler = MultiStepLR(
             optimizer, milestones=milestones, gamma=args.gamma, last_epoch=last_epoch
         )
-
         scheduler.__setattr__("__interval__", "epoch")
-        if logger is not None:
-            logger.info("Loading Multi step scheduler ")
-
-    # elif args.scheduler_type.lower() == 'reduce_on_plateau':
-    #     scheduler = lr_scheduler.ReduceLROnPlateau(
-    #         optimizer,
-    #     )
-    #     scheduler.__setattr__('__interval__', 'epoch')
-
-    elif args.scheduler_type.lower() == "poly_warmstartup":
-        # https://github.com/PyTorchLightning/pytorch-lightning/issues/1038
+        logger.info("Loading Multi step scheduler")
+    elif scheduler_type == "poly_warmstartup":
+        # https://github.com/Tony-Y/pytorch_warmup
         scheduler = WarmupPolyLR(
             optimizer,
             power=0.9,
@@ -94,15 +105,9 @@ def make_scheduler(args, optimizer, iters_per_epoch=None, logger=None, last_epoc
             warmup_iters=args.warmup_iters,
             warmup_method=args.warmup_method,
         )
-
         scheduler.__setattr__("__interval__", "step")
-        if logger is not None:
-            logger.info("Loading Warm Startup scheduler")
-
-    elif args.scheduler_type.lower() == "multistep_warmstartup":
-        # =============================================================================
-        #         https://github.com/Tony-Y/pytorch_warmup
-        # =============================================================================
+        logger.info("Loading Warm Startup scheduler")
+    elif scheduler_type == "multistep_warmstartup":
         scheduler = WarmupMultiStepLR(
             optimizer,
             milestones=args.milestones,
@@ -111,31 +116,19 @@ def make_scheduler(args, optimizer, iters_per_epoch=None, logger=None, last_epoc
             warmup_iters=args.warmup_iters,
             warmup_method=args.warmup_method,
         )
-
-        if logger is not None:
-            logger.info("Loading multi step Warm Startup scheduler")
+        logger.info("Loading multi step Warm Startup scheduler")
         warnings.warn("This is not in compliance with pytorch lightning")
         scheduler.__setattr__("__interval__", "step")
-
-    elif args.scheduler_type.lower() == "onecycle":
-        scheduler = lr_scheduler.OneCycleLR(
+    elif scheduler_type == "onecycle":
+        scheduler = OneCycleLR(
             optimizer,
             max_lr=args.lr,
             epochs=args.epochs,
             steps_per_epoch=iters_per_epoch,
-            # pct_start=0.3,
-            # anneal_strategy='cos',
-            # cycle_momentum=True,
-            # base_momentum=0.85,
-            # max_momentum=0.95,
-            # div_factor=25.0,
-            # final_div_factor=10000.0,
             last_epoch=last_epoch,
         )
         scheduler.__setattr__("__interval__", "step")
-        if logger is not None:
-            logger.info("Loading OneCycle scheduler")
-
+        logger.info("Loading OneCycle scheduler")
     else:
         scheduler = ConstantLR(optimizer)
         scheduler.__setattr__("__interval__", "epoch")

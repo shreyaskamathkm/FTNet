@@ -1,80 +1,37 @@
-# =============================================================================
-# To distribute train, valid, test for SODA
-# =============================================================================
-
-import os
-import pandas as pd
-from glob import glob
 import shutil
 import argparse
+import pandas as pd
+from pathlib import Path
+from glob import glob
 
 
-def is_image_file(filename):
-    return any(
-        filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"]
-    )
-
-
-def str2bool(v):
-    if v.lower() in ("yes", "true", "t", "y", "1"):
-        return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
-        return False
-    else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
-
-
-# %%
-# =============================================================================
-# Copying files to different folders
-# =============================================================================
 def copying(tiles, path_label, basepath, fileset_path):
     tiles.set_index(path_label, inplace=True)
     for img_path in tiles.index:
         print(f"Path = {img_path}")
-        dst_path = os.path.join(basepath, fileset_path)
-
+        dst_path = basepath / fileset_path
         shutil.copy(img_path, dst_path)
 
 
-# %%
-# =============================================================================
-# Creating folders
-# =============================================================================
-
-
 def distribute(input_dir, output_dir, reset):
-    # basepath = './Thermal_Segmentation/Dataset/Cityscapes_thermal/TIR_leftImg8bit/'
-    basepath = input_dir
+    basepath = Path(input_dir)
+    base_dir = Path(output_dir) / "CITYSCAPE_5000"
 
-    # os.path.abspath(os.path.join(basepath,'..'))
-    base_dir = os.path.join(output_dir, "CITYSCAPE_5000")
-    if reset and os.path.exists(base_dir):
+    if reset and base_dir.exists():
         shutil.rmtree(base_dir)
-    if not os.path.exists(base_dir):
-        os.mkdir(base_dir)
 
-    main_dirs_image = ["image/train"]
-    main_dirs_mask = ["mask/train"]
+    if not base_dir.exists():
+        base_dir.mkdir(parents=True)
 
-    for main in main_dirs_image:
-        path = os.path.join(base_dir, main)
-        if not os.path.exists(path):
-            os.makedirs(path)
+    main_dirs = ["image/train", "mask/train"]
 
-    for main in main_dirs_mask:
-        path = os.path.join(base_dir, main)
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-    # %%
-    # =============================================================================
-    # Creating folders
-    # =============================================================================
+    for main in main_dirs:
+        path = base_dir / main
+        if not path.exists():
+            path.mkdir(parents=True)
 
     imageid_path_dict = {
-        os.path.splitext(os.path.basename(x))[0]: x
-        for x in glob(os.path.join(basepath, "**", "**", "*.jpg"), recursive=True)
+        Path(x).stem: x for x in glob(str(basepath / "**/*.jpg"), recursive=True)
     }
 
     tile_df = pd.DataFrame(
@@ -95,25 +52,20 @@ def distribute(input_dir, output_dir, reset):
         "leftImg8bit_synthesized_image", "gtFine_labelIds"
     )
 
-    # https://stackoverflow.com/questions/28679930/how-to-drop-rows-from-pandas-data-frame-that-contains-a-particular-string-in-a-p
-    # https://stackoverflow.com/questions/41425945/python-pandas-error-missing-unterminated-subpattern-at-position-2
-    tile_df = tile_df[
-        ~tile_df.Image_Name.str.contains(r"\(")
-    ]  # there are copies of some files, eg, ABCD.png and ABCD (1).png (I am removing the copies)
-    # there are copies of some files, eg, ABCD.png and ~temp_ABCD.png (I am removing the copies)
+    tile_df = tile_df[~tile_df.Image_Name.str.contains(r"\(")]
     tile_df = tile_df[~tile_df.Image_Name.str.contains(r"\~")]
 
     copying(
         tiles=tile_df,
         path_label="Image_Path",
         basepath=base_dir,
-        fileset_path=main_dirs_image[0],
+        fileset_path=main_dirs[0],
     )
     copying(
         tiles=tile_df,
         path_label="Mask_Path",
         basepath=base_dir,
-        fileset_path=main_dirs_mask[0],
+        fileset_path=main_dirs[1],
     )
 
 
@@ -123,16 +75,18 @@ if __name__ == "__main__":
         "--input-image-path",
         type=str,
         default="/mnt/1842213842211C4E/raw_dataset/SODA-20211127T202136Z-001/SODA/TIR_leftImg8bit/",
-        help="Path to Cityscape Dataset. Note: This should lead to TIR_leftImg8bit",
+        help="Path to the Cityscape dataset images. This path should lead to the directory containing TIR_leftImg8bit images.",
     )
     parser.add_argument(
         "--save-path",
         type=str,
         default="/mnt/1842213842211C4E/processed_dataset/",
-        help="Path to Cityscape Dataset",
+        help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(
-        "--reset", type=bool, default=True, help="Path to Cityscape Dataset"
+        "--reset",
+        action="store_true",
+        help="Flag indicating whether to reset (remove existing) dataset directory if it already exists. True to reset, False to append to existing directory.",
     )
 
     args = parser.parse_args()

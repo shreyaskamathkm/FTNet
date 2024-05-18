@@ -91,3 +91,4 @@ Codes/src/debug/uuid.py
 *.pstats
 
 *.insyncdl
+data/*

@@ -7,6 +7,9 @@ from typing import Any
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import logging
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["MixSoftmaxCrossEntropyLoss", "EdgeNetLoss", "get_segmentation_loss"]
 
@@ -71,7 +74,7 @@ class EdgeNetLoss(nn.Module):
             self.auto_weight_bce(pred_edge_map, target_edges.float())
         )
         loss2 = self.cross_entropy(pred_class_map, target_maps)
-        print(f"loss_weight: {self.loss_weight} loss1: {loss1}  loss2: {loss2} ")
+        logger.debug(f"loss_weight: {self.loss_weight} loss1: {loss1}  loss2: {loss2} ")
         return loss1 + loss2
 
 

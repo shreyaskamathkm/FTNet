@@ -17,6 +17,7 @@ class TrainingHyperParamsArgs(BaseModel):
     train_batch_size: int = 16
     val_batch_size: int = 4
     accumulate_grad_batches: int = 1
+    pretrain_checkpoint: Path = None
 
 
 class TestingHyperParamsArgs(BaseModel):
@@ -26,7 +27,7 @@ class TestingHyperParamsArgs(BaseModel):
 
 
 class ModelArgs(BaseModel):
-    model: str = "ftnet"
+    name: str = "ftnet"
     backbone: str = "resnext50_32x4d"
     pretrained_base: bool = False
     dilation: bool = False
@@ -36,7 +37,7 @@ class ModelArgs(BaseModel):
 
 
 class DataLoaderArgs(BaseModel):
-    dataset: str = "soda"
+    name: str = "soda"
     dataset_path: Path = Path("./Dataset/")
     base_size: List[int] = [300]
     crop_size: List[int] = [256]
@@ -48,7 +49,7 @@ class WandBArgs(BaseModel):
 
 
 class OptimizerArgs(BaseModel):
-    optimizer: str = "SGD"
+    name: str = "SGD"
     lr: float = 0.01
     momentum: float = 0.9
     nesterov: bool = False
@@ -76,9 +77,11 @@ class CheckpointLogArgs(BaseModel):
 
 class ComputeArgs(BaseModel):
     debug: bool = False
+    accelerator: str = "auto"
+    strategy: str = "auto"
     seed: int = 123
     num_nodes: int = 1
-    gpus: int = 1
+    devices: int = 1
     distributed_backend: str = "dp"
     workers: int = 16
 

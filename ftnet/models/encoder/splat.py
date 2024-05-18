@@ -9,7 +9,11 @@ from torch import nn
 import torch.nn.functional as F
 from torch.nn import Conv2d, Module, ReLU
 from torch.nn.modules.utils import _pair
-from resnetv1b import DropBlock2D
+
+
+class DropBlock2D:
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 __all__ = ["SplAtConv2d"]

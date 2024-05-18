@@ -63,7 +63,7 @@ class SegmentationLightningModel(BaseTrainer):
 
         return log_dict
 
-    def training_epoch_end(self, outputs):
+    def on_train_epoch_end(self, outputs):
         confusion_matrix = self.train_confmat.compute()
         iou = self.train_IOU.compute()
         accuracy = self.accuracy_(confusion_matrix)
@@ -115,7 +115,7 @@ class SegmentationLightningModel(BaseTrainer):
 
         return log_dict
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         confusion_matrix = self.val_confmat.compute()
         iou = self.val_IOU.compute()
         accuracy = self.accuracy_(confusion_matrix)
@@ -186,7 +186,7 @@ class SegmentationLightningModel(BaseTrainer):
 
         return
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         # https://stackoverflow.com/questions/20927368/how-to-normalize-a-confusion-matrix
 
         def accuracy_(confusion_matrix):

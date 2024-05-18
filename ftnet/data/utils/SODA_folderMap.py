@@ -1,13 +1,12 @@
-# =============================================================================
-# To distribute train, valid, test for SODA
-# =============================================================================
-
-import os
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from glob import glob
 import shutil
 import argparse
+import pandas as pd
+from glob import glob
+from pathlib import Path
+from scipy.stats import wasserstein_distance
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def is_image_file(filename):
@@ -16,192 +15,206 @@ def is_image_file(filename):
     )
 
 
-def str2bool(v):
-    if v.lower() in ("yes", "true", "t", "y", "1"):
-        return True
-    elif v.lower() in ("no", "false", "f", "n", "0"):
-        return False
-    else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
+def plot_hist(split1_hist, split2_hist, num_per_class_perc, num_labels=21):
+    # Some visualizations
+    # Bar width
+    bar_width = 0.35
+    categories = np.arange(1, num_labels + 1)
+    percentile_values = np.arange(10, 101, 10)  # [25, 50, 75, 100]
+    percentile = np.percentile(num_per_class_perc, percentile_values)
+    for i, p in enumerate(percentile):
+        if i == 0:
+            split1_hist_ = split1_hist[split1_hist <= p]
+            split2_hist_ = split2_hist[split1_hist <= p]
+            categories_ = categories[split1_hist <= p]
+        else:
+            split1_hist_ = split1_hist[
+                (split1_hist <= p) & (split1_hist > percentile[i - 1])
+            ]
+            split2_hist_ = split2_hist[
+                (split1_hist <= p) & (split1_hist > percentile[i - 1])
+            ]
+            categories_ = categories[
+                (split1_hist <= p) & (split1_hist > percentile[i - 1])
+            ]
+        # Set up figure and axis
+        _, ax = plt.subplots()
+        # Bar plot for the first vector
+        ax.bar(categories_, split1_hist_, label="Split 1")
+        # Bar plot for the second vector
+        ax.bar(categories_ + bar_width, split2_hist_, label="Split 2")
+        # Add labels, title, and legend
+        ax.set_xlabel("Class")
+        ax.set_ylabel("Percentage")
+        ax.set_title(f"Distribution of Quantil {percentile_values[i]}")
+        ax.legend()
+        # Show the plot
+        plt.savefig(f"./split_hist_{i}.png")
 
 
-# %%
-# =============================================================================
+def stratify(
+    file_path, num_permutations=50000, split_perc=0.5, random_seed=42, num_labels=21
+):
+    """
+    Adapted from https://stackoverflow.com/questions/74202417/stratified-sampling-for-semantic-segmentation
+    """
+
+    # guarantee that all classes are in both splits
+    min_perc = split_perc / 10
+
+    # Get labels from label files and create histograms
+    label_histograms = []
+    for path in file_path:
+        labels = cv2.imread(path)
+        histogram, _ = np.histogram(labels, bins=np.arange(1, num_labels + 2))
+        label_histograms.append(histogram)
+    # calculate overall histogram and some statistics
+    label_histograms = np.array(label_histograms)
+    num_per_class = np.sum(label_histograms, axis=0)
+    num_per_class_perc = num_per_class / np.sum(num_per_class)
+    min_per_class = num_per_class * min_perc
+
+    # initialize permutation
+    idx = np.arange(len(file_path))
+    permutations = []
+    rng = np.random.default_rng(seed=random_seed)
+    for _ in range(num_permutations):
+        permuted_vector = rng.permutation(idx)
+        permutations.append(permuted_vector)
+
+    # performs trials and calculate Earth mover distance
+    num_test_perc = int(len(file_path) * split_perc)
+    emd_distance = []
+    for perm in permutations:
+        # test data
+        split1_idx = perm[:num_test_perc]
+        split1_hist = np.sum(label_histograms[split1_idx], axis=0)
+        if np.any(split1_hist < min_per_class):
+            emd_distance.append(np.nan)
+            continue
+        split1_hist = split1_hist / np.sum(split1_hist)
+        # train data
+        split2_idx = perm[num_test_perc:]
+        split2_hist = np.sum(label_histograms[split2_idx], axis=0)
+        if np.any(split2_hist < min_per_class):
+            emd_distance.append(np.nan)
+            continue
+        split2_hist = split2_hist / np.sum(split2_hist)
+        # add Earth Mover Distance
+        emd_distance.append(wasserstein_distance(split1_hist, split2_hist))
+
+    # find best split (smallest EMD value)
+    emd_distance = np.asarray(emd_distance)
+    emd_distance_min_idx = np.nanargmin(emd_distance)
+    perm_final = permutations[emd_distance_min_idx]
+    # split1 data
+    split1_idx = perm_final[:num_test_perc]
+    split1_hist = np.sum(label_histograms[split1_idx], axis=0)
+    split1_hist = split1_hist / np.sum(split1_hist)
+    # split2 data
+    split2_idx = perm_final[num_test_perc:]
+    split2_hist = np.sum(label_histograms[split2_idx], axis=0)
+    split2_hist = split2_hist / np.sum(split2_hist)
+    plot_hist(split1_hist, split2_hist, num_per_class_perc, num_labels=num_labels)
+
+    return split1_idx, split2_idx
+
+
 # Copying files to different folders
-# =============================================================================
 def copying(tiles, path_label, basepath, fileset_path):
     tiles.set_index(path_label, inplace=True)
     for img_path in tiles.index:
         print(f"Path = {img_path}")
-        dst_path = os.path.join(basepath, fileset_path)
-
+        dst_path = basepath / fileset_path
         shutil.copy(img_path, dst_path)
 
 
-# %%
-# =============================================================================
-# Creating folders
-# =============================================================================
-
-
 def distribute(input_dir, output_dir, reset):
-    # basepath = './Thermal_Segmentation/Dataset/InfraredSemanticLabel-20210430T150555Z-001/'
-    basepath = input_dir
+    train_Name_path = input_dir / "train_infrared.txt"
+    test_Name_path = input_dir / "test_infrared.txt"
+    Image_path = input_dir / "JPEGImages"
 
-    train_Name_path = basepath + "/train_infrared.txt"
-    test_Name_path = basepath + "/test_infrared.txt"
-    Image_path = basepath + "/JPEGImages"
-    # Mask_path = basepath + '/InfraredSemanticLabel/SegmentationClassOne'
-
-    # os.path.abspath(os.path.join(basepath,'..'))
-    base_dir = os.path.join(output_dir, "SODA")
-    if reset and os.path.exists(base_dir):
-        if os.path.exists(base_dir):
-            shutil.rmtree(base_dir)
-    if not os.path.exists(base_dir):
-        os.mkdir(base_dir)
+    base_dir = Path(output_dir) / "SODA"
+    if reset and base_dir.exists():
+        shutil.rmtree(base_dir)
+    if not base_dir.exists():
+        base_dir.mkdir(parents=True, exist_ok=True)
 
     main_dirs_image = ["image/train", "image/val", "image/test"]
     main_dirs_mask = ["mask/train", "mask/val", "mask/test"]
 
-    for main in main_dirs_image:
-        path = os.path.join(base_dir, main)
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-    for main in main_dirs_mask:
-        path = os.path.join(base_dir, main)
-        if not os.path.exists(path):
-            os.makedirs(path)
-    # %%
-    # =============================================================================
-    # Creating folders
-    # =============================================================================
+    for main in main_dirs_image + main_dirs_mask:
+        path = base_dir / main
+        if not path.exists():
+            path.mkdir(parents=True)
 
     imageid_path_dict = {
-        os.path.splitext(os.path.basename(x))[0]: x
-        for x in glob(os.path.join(Image_path, "**", "**", "*.jpg"), recursive=True)
+        Path(x).stem: x for x in glob(str(Image_path / "**/*.jpg"), recursive=True)
     }
 
-    name_df = pd.read_table(
-        test_Name_path, delim_whitespace=True, names=("Image_Name", "B")
-    )
-    name_df = name_df.sort_values(
-        by="Image_Name", axis=0, ascending=True, kind="quicksort"
-    ).reset_index(drop=True)
-    name_df = name_df.fillna("NA")
-    del name_df["B"]
-    name_df["Image_Path"] = name_df["Image_Name"].map(imageid_path_dict.get)
-    name_df["Mask_Path"] = name_df["Image_Path"].str.replace(".jpg", ".png")
-    name_df["Mask_Path"] = name_df["Mask_Path"].str.replace(
-        "JPEGImages", "SegmentationClassOne"
-    )
+    def process_data(df, main_dirs_image, main_dirs_mask):
+        df = df[~df.Image_Name.str.contains(r"\(")]  # Remove copies
+        df = df[~df.Image_Name.str.contains(r"\~")]  # Remove copies
+        for idx, (img_set, mask_set) in enumerate(zip(main_dirs_image, main_dirs_mask)):
+            copying(
+                tiles=df,
+                path_label="Image_Path",
+                basepath=base_dir,
+                fileset_path=img_set,
+            )
+            copying(
+                tiles=df,
+                path_label="Mask_Path",
+                basepath=base_dir,
+                fileset_path=mask_set,
+            )
 
-    test_df, validation_df = train_test_split(name_df, test_size=0.1, random_state=2)
-
-    test_df = test_df[
-        ~test_df.Image_Name.str.contains(r"\(")
-    ]  # there are copies of some files, eg, ABCD.png and ABCD (1).png (I am removing the copies)
-    # there are copies of some files, eg, ABCD.png and ~temp_ABCD.png (I am removing the copies)
-    test_df = test_df[~test_df.Image_Name.str.contains(r"\~")]
-    # there are copies of some files, eg, ABCD.png and ABCD (1).png (I am removing the copies)
-    validation_df = validation_df[~validation_df.Image_Name.str.contains(r"\(")]
-    # there are copies of some files, eg, ABCD.png and ~temp_ABCD.png (I am removing the copies)
-    validation_df = validation_df[~validation_df.Image_Name.str.contains(r"\~")]
-
-    validation_df1 = validation_df.copy(deep=True)
-
-    copying(
-        tiles=validation_df,
-        path_label="Image_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_image[1],
-    )
-    copying(
-        tiles=validation_df,
-        path_label="Mask_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_mask[1],
-    )
-
-    copying(
-        tiles=test_df,
-        path_label="Image_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_image[2],
-    )
-    copying(
-        tiles=test_df,
-        path_label="Mask_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_mask[2],
-    )
-
-    # Include validation set in test as well
-    copying(
-        tiles=validation_df1,
-        path_label="Image_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_image[2],
-    )
-    copying(
-        tiles=validation_df1,
-        path_label="Mask_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_mask[2],
-    )
-    #
-
+    # Process train set
     train_df = pd.read_table(
         train_Name_path, delim_whitespace=True, names=("Image_Name", "B")
     )
-    train_df = train_df.sort_values(
-        by="Image_Name", axis=0, ascending=True, kind="quicksort"
-    ).reset_index(drop=True)
-    train_df = train_df.fillna("NA")
-    del train_df["B"]
     train_df["Image_Path"] = train_df["Image_Name"].map(imageid_path_dict.get)
     train_df["Mask_Path"] = train_df["Image_Path"].str.replace(".jpg", ".png")
     train_df["Mask_Path"] = train_df["Mask_Path"].str.replace(
         "JPEGImages", "SegmentationClassOne"
     )
-    # https://stackoverflow.com/questions/28679930/how-to-drop-rows-from-pandas-data-frame-that-contains-a-particular-string-in-a-p
-    # https://stackoverflow.com/questions/41425945/python-pandas-error-missing-unterminated-subpattern-at-position-2
-    # there are copies of some files, eg, ABCD.png and ABCD (1).png (I am removing the copies)
-    train_df = train_df[~train_df.Image_Name.str.contains(r"\(")]
-    # there are copies of some files, eg, ABCD.png and ~temp_ABCD.png (I am removing the copies)
-    train_df = train_df[~train_df.Image_Name.str.contains(r"\~")]
+    process_data(train_df, [main_dirs_image[0]], [main_dirs_mask[0]])
 
-    copying(
-        tiles=train_df,
-        path_label="Image_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_image[0],
+    # Process test and validation sets
+    test_df = pd.read_table(
+        test_Name_path, delim_whitespace=True, names=("Image_Name", "B")
     )
-    copying(
-        tiles=train_df,
-        path_label="Mask_Path",
-        basepath=base_dir,
-        fileset_path=main_dirs_mask[0],
+    test_df["Image_Path"] = test_df["Image_Name"].map(imageid_path_dict.get)
+    test_df["Mask_Path"] = test_df["Image_Path"].str.replace(".jpg", ".png")
+    test_df["Mask_Path"] = test_df["Mask_Path"].str.replace(
+        "JPEGImages", "SegmentationClassOne"
     )
+
+    val_idx, test_idx = stratify(test_df["Mask_Path"])
+    process_data(test_df.iloc[val_idx], [main_dirs_image[1]], [main_dirs_mask[1]])
+    process_data(test_df.iloc[test_idx], [main_dirs_image[2]], [main_dirs_mask[2]])
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Set up Cityscape Dataset")
+    parser = argparse.ArgumentParser(
+        description="Distribute train, validation, and test sets for SODA dataset"
+    )
     parser.add_argument(
         "--input-image-path",
-        type=str,
-        default="/mnt/1842213842211C4E/raw_dataset/SODA-20211127T202136Z-001/SODA/InfraredSemanticLabel/",
-        help="Path to Soda Dataset",
+        type=Path,
+        default="/mnt/f/lab-work/FTNet/datasets/SODA/SODA/InfraredSemanticLabel/",
+        help="Path to the SODA dataset images. This should lead to the directory containing JPEGImages.",
     )
     parser.add_argument(
         "--save-path",
-        type=str,
-        default="/mnt/1842213842211C4E/processed_dataset/",
-        help="Path to Soda Dataset",
+        type=Path,
+        default="/mnt/f/lab-work/FTNet/data/processed_dataset/",
+        help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(
-        "--reset", type=bool, default=True, help="Path to Cityscape Dataset"
+        "--reset",
+        action="store_true",
+        help="Flag indicating whether to reset (remove existing) dataset directory if it already exists. True to reset, False to append to existing directory.",
     )
 
     args = parser.parse_args()

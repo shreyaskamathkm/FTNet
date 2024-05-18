@@ -12,7 +12,9 @@ from utils.utils import as_numpy
 from .base_trainer import BaseTrainer
 from torchmetrics.aggregation import MeanMetric
 from lightning.pytorch.callbacks import ModelCheckpoint
+import logging
 
+logger = logging.getLogger(__name__)
 
 BatchNorm2d = nn.BatchNorm2d
 
@@ -55,7 +57,7 @@ class SegmentationLightningModel(BaseTrainer):
 
         return log_dict
 
-    def training_epoch_end(self, outputs):
+    def on_train_epoch_end(self, outputs):
         confusion_matrix = self.train_confmat.compute()
         iou = self.train_IOU.compute()
         accuracy = self.accuracy_(confusion_matrix)
@@ -103,7 +105,7 @@ class SegmentationLightningModel(BaseTrainer):
 
         return log_dict
 
-    def validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self, outputs):
         confusion_matrix = self.val_confmat.compute()
         iou = self.val_IOU.compute()
         accuracy = self.accuracy_(confusion_matrix)
@@ -170,7 +172,7 @@ class SegmentationLightningModel(BaseTrainer):
 
         return
 
-    def test_epoch_end(self, outputs):
+    def on_test_epoch_end(self, outputs):
         def accuracy_(confusion_matrix):
             acc = confusion_matrix.diag() / confusion_matrix.sum(1)
             acc[torch.isnan(acc)] = 0

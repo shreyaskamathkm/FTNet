@@ -28,6 +28,8 @@ rich = "^13.7.1"
 wandb = "^0.17.0"
 tensorboard = "^2.16.2"
 seaborn = "^0.13.2"
+scikit-learn = "^1.4.2"
+scikit-multilearn = "^0.2.0"
 
 [[tool.poetry.source]]
 name = "torchcpu"

@@ -7,35 +7,30 @@ from pytorch_lightning.utilities import rank_zero_only
 
 __all__ = ["setup_logger"]
 
+MINIMUM_GLOBAL_LEVEL = logging.DEBUG
+GLOBAL_HANDLER = logging.StreamHandler()
+LOG_FORMAT = (
+    "[%(asctime)s] - %(levelname)s - [%(name)s.%(funcName)s:%(lineno)d] - %(message)s"
+)
+LOG_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 
 @rank_zero_only
 @functools.lru_cache  # so that calling setup_logger multiple times won't add many handlers
 def setup_logger(
     save_dir: Path,
-    name: str = "FTNet",
-    distributed_rank: int = 0,
     filename: str = "log.txt",
     mode: str = "w",
-    abbrev_name: str = None,
     print_to_console: bool = True,
 ):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    # logger = logging.getLogger(name)
+    logger = logging.getLogger()
+    logger.setLevel(MINIMUM_GLOBAL_LEVEL)
     logger.propagate = False
-
-    if distributed_rank > 0:
-        return logger
-
-    if not abbrev_name:
-        abbrev_name = "SG" if name == "segmentation" else name
-
-    plain_formatter = logging.Formatter(
-        "[%(asctime)s] %(name)s %(levelname)s: %(message)s", datefmt="%m/%d %H:%M:%S"
-    )
 
     if print_to_console:
         ch = RichHandler()
-        ch.setLevel(logging.DEBUG)
+        ch.setLevel(MINIMUM_GLOBAL_LEVEL)
         logger.addHandler(ch)
 
     if save_dir:
@@ -44,8 +39,8 @@ def setup_logger(
 
         log_file_path = save_dir / filename
         fh = logging.FileHandler(log_file_path, mode=mode)
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(plain_formatter)
+        fh.setLevel(MINIMUM_GLOBAL_LEVEL)
+        # fh.setFormatter(LOG_FORMAT)
         logger.addHandler(fh)
 
     return logger
