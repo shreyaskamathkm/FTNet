@@ -54,9 +54,8 @@ def distribute(input_dir, output_dir, reset):
 
     # os.path.abspath(os.path.join(basepath,'..'))
     base_dir = os.path.join(output_dir, "SCUTSEG")
-    if reset and os.path.exists(base_dir):
-        if os.path.exists(base_dir):
-            shutil.rmtree(base_dir)
+    if reset and os.path.exists(base_dir) and os.path.exists(base_dir):
+        shutil.rmtree(base_dir)
     if not os.path.exists(base_dir):
         os.mkdir(base_dir)
 

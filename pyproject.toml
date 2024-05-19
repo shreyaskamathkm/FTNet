@@ -70,7 +70,7 @@ select = [
 extend-select = [
     "I",  # see: isort
     "C4",  # see: https://pypi.org/project/flake8-comprehensions
-#     "SIM",  # see: https://pypi.org/project/flake8-simplify
+    "SIM",  # see: https://pypi.org/project/flake8-simplify
 #     "RET",  # see: https://pypi.org/project/flake8-return
 #     "PT",  # see: https://pypi.org/project/flake8-pytest-style
 #     "RUF100",  # see: https://docs.astral.sh/ruff/rules/unused-noqa/
@@ -81,6 +81,7 @@ ignore = [
     "E731",
     "C417",
     "E501",
+    "SIM105",
 ]
 ignore-init-module-imports = true
 

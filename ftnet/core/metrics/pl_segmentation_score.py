@@ -92,14 +92,13 @@ def intersectionAndUnionGPU(
             for each of K classes, present in this GT label map.
     """
 
-    if test:
-        if output.shape != target.shape:
-            output = F.interpolate(
-                output,
-                size=(target.shape[1], target.shape[2]),
-                mode="bilinear",
-                align_corners=True,
-            )
+    if test and (output.shape != target.shape):
+        output = F.interpolate(
+            output,
+            size=(target.shape[1], target.shape[2]),
+            mode="bilinear",
+            align_corners=True,
+        )
 
     output = torch.argmax(output.long(), 1)
     assert output.dim() in [1, 2, 3]

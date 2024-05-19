@@ -55,10 +55,7 @@ class SegBaseModel(nn.Module):
 def get_upsample_filter(size):
     """Make a 2D bilinear kernel suitable for upsampling."""
     factor = (size + 1) // 2
-    if size % 2 == 1:
-        center = factor - 1
-    else:
-        center = factor - 0.5
+    center = (factor - 1) if size % 2 == 1 else (factor - 0.5)
     og = np.ogrid[:size, :size]
     filter = (1 - abs(og[0] - center) / factor) * (1 - abs(og[1] - center) / factor)
     return torch.from_numpy(filter).float()
@@ -84,7 +81,7 @@ def check_mismatch(model, pretrained_dict) -> None:
     model_dict = model.state_dict()
     temp_dict = OrderedDict()
     for k, v in pretrained_dict.items():
-        if k in model_dict.keys():
+        if k in model_dict:
             if model_dict[k].shape != pretrained_dict[k].shape:
                 logger.info(
                     f"Skip loading parameter: {k}, "

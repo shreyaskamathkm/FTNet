@@ -46,11 +46,7 @@ class SegmentationLightningModel(BaseTrainer):
         loss_val = self.criterion(output, (target, edges))
 
         class_map, edge_map = output
-        class_map = (
-            class_map[0]
-            if isinstance(class_map, tuple) or isinstance(class_map, list)
-            else class_map
-        )
+        class_map = class_map[0] if isinstance(class_map, (list, tuple)) else class_map
         class_map = torch.argmax(class_map.long(), 1)
         edge_pred = torch.mean(((edge_map > 0) == edges).float(), dim=[1, 2, 3])
 
@@ -88,11 +84,7 @@ class SegmentationLightningModel(BaseTrainer):
         loss_val = self.criterion(output, (target, edges))
 
         class_map, edge_map = output
-        class_map = (
-            class_map[0]
-            if isinstance(class_map, tuple) or isinstance(class_map, list)
-            else class_map
-        )
+        class_map = class_map[0] if isinstance(class_map, (tuple, list)) else class_map
         class_map = torch.argmax(class_map.long(), 1)
         edge_pred = torch.mean(((edge_map > 0) == edges).float(), dim=[1, 2, 3])
 
@@ -156,11 +148,7 @@ class SegmentationLightningModel(BaseTrainer):
         output = self.forward(images)
 
         class_map, edge_map = output
-        class_map = (
-            class_map[0]
-            if isinstance(class_map, tuple) or isinstance(class_map, list)
-            else class_map
-        )
+        class_map = class_map[0] if isinstance(class_map, (tuple, list)) else class_map
         class_map = upsample_output(class_map, target)
         edge_map = upsample_output(edge_map, target)
 

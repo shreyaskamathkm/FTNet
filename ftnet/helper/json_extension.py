@@ -24,10 +24,7 @@ def _to_json_dict_with_strings(dictionary):
 
 
 def to_json(dic):
-    if isinstance(dic, dict):
-        dic = dict(dic)
-    else:
-        dic = dic.__dict__
+    dic = dict(dic) if isinstance(dic, dict) else dic.__dict__
     return _to_json_dict_with_strings(dic)
 
 

@@ -228,7 +228,7 @@ class FeatureTransverseDecoder(nn.Module):
                     previous_dilated_branches = (
                         np.array(self.dilation[-(num_branches - j - 1) :]) > 1
                     )
-                    current_dilated_branches = True if self.dilation[i] > 1 else False
+                    current_dilated_branches = bool(self.dilation[i] > 1)
                     for branch_index in range(i - j):
                         if branch_index == i - j - 1:
                             num_outchannels_conv3x3 = num_inchannels[i]

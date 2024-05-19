@@ -285,7 +285,7 @@ class BaseTrainer(LightningModule):
             model_dict = check_mismatch(model_dict, pretrained_dict)
             self.model.load_state_dict(
                 model_dict,
-                strict=False if self.args.pretrain_checkpoint is not None else True,
+                strict=bool(self.args.pretrain_checkpoint),
             )
             logger.info("Pre-trained model loaded successfully")
 

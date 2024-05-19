@@ -83,9 +83,8 @@ def distribute(input_dir, output_dir, reset):
     destpath = os.path.join(output_dir, "MFN")
 
     # os.path.abspath(os.path.join(basepath,'..'))
-    if reset and os.path.exists(destpath):
-        if os.path.exists(destpath):
-            shutil.rmtree(destpath)
+    if reset and os.path.exists(destpath) and os.path.exists(destpath):
+        shutil.rmtree(destpath)
     if not os.path.exists(destpath):
         os.mkdir(destpath)
 

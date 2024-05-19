@@ -130,9 +130,9 @@ def print_iou(iu, mean_pixel_acc, class_names=None, show_no_back=False):
     lines = []
     for i in range(n):
         if class_names is None:
-            cls = "Class %d:" % (i + 1)
-        else:
-            cls = "%d %s" % (i + 1, class_names[i])
+            cls = (
+                "Class %d:" % (i + 1) if class_names is None else "%d %s" % (i + 1, class_names[i])
+            )
         lines.append("%-8s: %.3f%%" % (cls, iu[i] * 100))
     mean_IU = np.nanmean(iu)
     mean_IU_no_back = np.nanmean(iu[1:])

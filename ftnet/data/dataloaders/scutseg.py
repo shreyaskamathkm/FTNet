@@ -52,7 +52,7 @@ class SCUTSEGDataset(SegmentationDataset):
         self.class_map = dict(zip(self.valid_classes, range(10)))
 
     def __getitem__(self, index):
-        if isinstance(index, list) or isinstance(index, tuple):
+        if isinstance(index, (list, tuple)):
             index, scale = index
             input_size = self.crop_size[scale]
         else:

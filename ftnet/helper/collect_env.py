@@ -79,10 +79,7 @@ def collect_env_info():
     except Exception:
         pass
 
-    if not has_gpu:
-        has_gpu_text = "No: torch.cuda.is_available() == False"
-    else:
-        has_gpu_text = "Yes"
+    has_gpu_text = "Yes" if has_gpu else "No: torch.cuda.is_available() == False"
     data.append(("GPU available", has_gpu_text))
     if has_gpu:
         devices = defaultdict(list)

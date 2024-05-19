@@ -48,7 +48,7 @@ class MFNDataset(SegmentationDataset):
             raise RuntimeError("Found 0 images in subfolders of:" + root + "\n")
 
     def __getitem__(self, index):
-        if isinstance(index, list) or isinstance(index, tuple):
+        if isinstance(index, (list, tuple)):
             index, scale = index
             input_size = self.crop_size[scale]
         else:
