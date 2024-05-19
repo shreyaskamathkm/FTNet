@@ -103,9 +103,7 @@ class BasicBlock(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        out = self.relu(out)
-
-        return out
+        return self.relu(out)
 
 
 class DropBlock2D:
@@ -254,9 +252,7 @@ class Bottleneck(nn.Module):
             residual = self.downsample(x)
 
         out += residual
-        out = self.relu(out)
-
-        return out
+        return self.relu(out)
 
 
 class ResNet(nn.Module):
@@ -602,9 +598,7 @@ class ResNet(nn.Module):
         x = torch.flatten(x, 1)
         if self.drop:
             x = self.drop(x)
-        x = self.fc(x)
-
-        return x
+        return self.fc(x)
 
 
 def resnet18(pretrained=False, **kwargs):

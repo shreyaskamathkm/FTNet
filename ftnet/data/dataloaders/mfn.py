@@ -98,8 +98,7 @@ class MFNDataset(SegmentationDataset):
     def normalize(self, img):
         img = self.im2double(np.array(img))
         img = (img - self.mean) * np.reciprocal(self.std)
-        img = self.np2Tensor(img).float()
-        return img
+        return self.np2Tensor(img).float()
 
     def _mask_transform(self, mask):
         return torch.LongTensor(np.array(mask).astype("int32"))
@@ -165,6 +164,8 @@ def _get_mfn_pairs(folder, split="train", logger=None):
 
         img_paths, mask_paths, edge_paths = get_path_pairs(img_folder, mask_folder, edge_folder)
         return img_paths, mask_paths, edge_paths
+
+    raise ValueError("Split type unknown")
 
 
 if __name__ == "__main__":

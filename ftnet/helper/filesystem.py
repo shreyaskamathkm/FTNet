@@ -26,11 +26,11 @@ class checkpoint:
     def get_path(self, subdir: str) -> Path:
         if subdir in self.paths:
             return self.paths[subdir]
-        else:
-            temp = Path(self.save_path) / subdir
-            self.paths[subdir] = temp
-            temp.mkdir(parents=True, exist_ok=True)
-            return temp
+
+        temp = Path(self.save_path) / subdir
+        self.paths[subdir] = temp
+        temp.mkdir(parents=True, exist_ok=True)
+        return temp
 
 
 def makedirs(path: str):

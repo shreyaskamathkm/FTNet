@@ -104,9 +104,7 @@ class SegmentationLightningModel(BaseTrainer):
 
             self.save_edge_images(**image_dict)
 
-        log_dict = OrderedDict({"val_loss": loss_val})
-
-        return log_dict
+        return OrderedDict({"val_loss": loss_val})
 
     def on_validation_epoch_end(self, outputs):
         confusion_matrix = self.val_confmat.compute()
@@ -136,8 +134,7 @@ class SegmentationLightningModel(BaseTrainer):
                     mode="bilinear",
                     align_corners=True,
                 )
-            else:
-                output
+            return output
 
         self.seg_dir = self.ckp.get_path(
             f"Segmented_images/test/{self.trainer.test_name}"

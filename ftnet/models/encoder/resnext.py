@@ -68,9 +68,7 @@ class Bottleneck(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        out = self.relu(out)
-
-        return out
+        return self.relu(out)
 
 
 class ResNext(nn.Module):
@@ -196,9 +194,7 @@ class ResNext(nn.Module):
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
-        x = self.fc(x)
-
-        return x
+        return self.fc(x)
 
 
 def resnext50_32x4d(pretrained=False, **kwargs):

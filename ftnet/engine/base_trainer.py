@@ -258,8 +258,7 @@ class BaseTrainer(LightningModule):
                             f"loaded shape: {pretrained_dict[k].shape}"
                         )
                         continue
-                    else:
-                        temp_dict[k] = v
+                    temp_dict[k] = v
             return temp_dict
 
         if hasattr(self.model, "custom_load_state_dict"):

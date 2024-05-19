@@ -163,9 +163,7 @@ def set_img_color(img, label, colors, background=0, show255=False):
 def show_prediction(img, pred, colors, background=0):
     im = np.array(img, np.uint8)
     set_img_color(im, pred, colors, background)
-    out = np.array(im)
-
-    return out
+    return np.array(im)
 
 
 def show_colorful_images(prediction, palettes):

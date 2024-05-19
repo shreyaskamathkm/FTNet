@@ -19,8 +19,7 @@ def _to_json_dict_with_strings(dictionary):
     """
     if not isinstance(dictionary, dict):
         return str(to_python_float(dictionary))
-    d = {k: _to_json_dict_with_strings(v) for k, v in dictionary.items()}
-    return d
+    return {k: _to_json_dict_with_strings(v) for k, v in dictionary.items()}
 
 
 def to_json(dic):

@@ -152,8 +152,7 @@ class CityscapesCombineThermalDataset(SegmentationDataset):
     def normalize(self, img):
         img = self.im2double(np.array(img))
         img = (img - self.mean) * np.reciprocal(self.std)
-        img = self.np2Tensor(img).float()
-        return img
+        return self.np2Tensor(img).float()
 
     def _mask_transform(self, mask):
         target = self._class_to_index(np.array(mask).astype("int32"))

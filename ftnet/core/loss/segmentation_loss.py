@@ -43,8 +43,7 @@ class MixSoftmaxCrossEntropyLoss(nn.CrossEntropyLoss):
 
         if self.aux:
             return self._aux_forward(*inputs)
-        else:
-            return super().forward(*inputs)
+        return super().forward(*inputs)
 
 
 class EdgeNetLoss(nn.Module):
@@ -79,5 +78,5 @@ def get_segmentation_loss(model, **kwargs):
     model = model.lower()
     if "ftnet" in model:
         return EdgeNetLoss(**kwargs)
-    else:
-        return MixSoftmaxCrossEntropyLoss(**kwargs)
+
+    return MixSoftmaxCrossEntropyLoss(**kwargs)

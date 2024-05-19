@@ -48,8 +48,8 @@ def detect_compute_compatibility(CUDA_HOME, so_file):
                 arch.append(".".join(line))
             arch = sorted(set(arch))
             return ", ".join(arch)
-        else:
-            return so_file + "; cannot find cuobjdump"
+
+        return so_file + "; cannot find cuobjdump"
     except Exception:
         # unhandled failure
         return so_file

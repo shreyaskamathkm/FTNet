@@ -63,27 +63,18 @@ def plot_tensors(img, x=None):
 
 def to_python_float(t):
     if hasattr(t, "item"):
-        if t.numel() > 1:
-            return t.cpu().detach().numpy()
-        else:
-            return t.item()
-    elif isinstance(t, list):
-        return t[0]
-    else:
-        return t
+        return t.cpu().detach().numpy() if t.numel() > 1 else t.item()
+    return t[0] if isinstance(t, list) else t
 
 
 def as_numpy(obj):
     if isinstance(obj, collections.Sequence):
         return [as_numpy(v) for v in obj]
-    elif isinstance(obj, collections.Mapping):
+    if isinstance(obj, collections.Mapping):
         return {k: as_numpy(v) for k, v in obj.items()}
-    elif isinstance(obj, Variable):
+    if isinstance(obj, Variable):
         return obj.data.cpu().numpy()
-    elif torch.is_tensor(obj):
-        return obj.cpu().numpy()
-    else:
-        return np.array(obj)
+    return obj.cpu().numpy() if torch.is_tensor(obj) else np.array(obj)
 
 
 def save_checkpoint(states, is_best, output_dir, filename="checkpoint.pth.tar"):
@@ -110,5 +101,4 @@ def total_gradient(parameters):
     for p in parameters:
         modulenorm = p.grad.data.norm()
         totalnorm += modulenorm**2
-    totalnorm = totalnorm ** (1.0 / 2)
-    return totalnorm
+    return totalnorm ** (1.0 / 2)

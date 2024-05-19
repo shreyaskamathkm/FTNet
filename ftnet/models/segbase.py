@@ -48,8 +48,8 @@ class SegBaseModel(nn.Module):
 
         if multiscale:
             return [c0, c1, c2, c3, c4]
-        else:
-            return [c1, c2, c3, c4]
+
+        return [c1, c2, c3, c4]
 
 
 def get_upsample_filter(size):
@@ -89,8 +89,7 @@ def check_mismatch(model, pretrained_dict) -> None:
                     f"loaded shape: {pretrained_dict[k].shape}"
                 )
                 continue
-            else:
-                temp_dict[k] = v
+            temp_dict[k] = v
     return temp_dict
 
 

@@ -82,12 +82,12 @@ class CyclicCosAnnealingLR(_LRScheduler):
                 / 2
                 for base_lr in self.base_lrs
             ]
-        else:
-            return [
-                self.eta_min
-                + (base_lr - self.eta_min) * (1 + math.cos(math.pi * curr_pos / width)) / 2
-                for base_lr in self.base_lrs
-            ]
+
+        return [
+            self.eta_min
+            + (base_lr - self.eta_min) * (1 + math.cos(math.pi * curr_pos / width)) / 2
+            for base_lr in self.base_lrs
+        ]
 
 
 class CyclicLinearLR(_LRScheduler):
@@ -155,8 +155,7 @@ class CyclicLinearLR(_LRScheduler):
                 for base_lr in self.base_lrs
             ]
 
-        else:
-            return [
-                self.eta_min + (base_lr - self.eta_min) * (1.0 - 1.0 * curr_pos / width)
-                for base_lr in self.base_lrs
-            ]
+        return [
+            self.eta_min + (base_lr - self.eta_min) * (1.0 - 1.0 * curr_pos / width)
+            for base_lr in self.base_lrs
+        ]

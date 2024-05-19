@@ -160,8 +160,7 @@ class CityscapesThermalsSplitDataset(SegmentationDataset):
     def normalize(self, img):
         img = self.im2double(np.array(img))
         img = (img - self.mean) * np.reciprocal(self.std)
-        img = self.np2Tensor(img).float()
-        return img
+        return self.np2Tensor(img).float()
 
     def _edge_transform(self, edge):
         edge = np.array(edge)
@@ -253,17 +252,17 @@ def _get_city_pairs(folder, split="train", logger=None):
         # img_paths与mask_paths的顺序是一一对应的
         img_paths, mask_paths, edge_paths = get_path_pairs(img_folder, mask_folder, edge_folder)
         return img_paths, mask_paths, edge_paths
-    else:
-        assert split == "trainval"
-        print("trainval set")
-        train_img_folder = os.path.join(folder, "leftImg8bit/train")
-        train_mask_folder = os.path.join(folder, "gtFine/train")
-        val_img_folder = os.path.join(folder, "leftImg8bit/val")
-        val_mask_folder = os.path.join(folder, "gtFine/val")
-        train_img_paths, train_mask_paths = get_path_pairs(train_img_folder, train_mask_folder)
-        val_img_paths, val_mask_paths = get_path_pairs(val_img_folder, val_mask_folder)
-        img_paths = train_img_paths + val_img_paths
-        mask_paths = train_mask_paths + val_mask_paths
+
+    assert split == "trainval"
+    print("trainval set")
+    train_img_folder = os.path.join(folder, "leftImg8bit/train")
+    train_mask_folder = os.path.join(folder, "gtFine/train")
+    val_img_folder = os.path.join(folder, "leftImg8bit/val")
+    val_mask_folder = os.path.join(folder, "gtFine/val")
+    train_img_paths, train_mask_paths = get_path_pairs(train_img_folder, train_mask_folder)
+    val_img_paths, val_mask_paths = get_path_pairs(val_img_folder, val_mask_folder)
+    img_paths = train_img_paths + val_img_paths
+    mask_paths = train_mask_paths + val_mask_paths
     return img_paths, mask_paths
 
 

@@ -49,11 +49,10 @@ def setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: checkpoint) -> List[Ca
             with wandb_text_file.open("a") as f:
                 f.write(args.wandb.wandb_id)
 
-    checkpoint_callbacks = [
+    return [
         LearningRateMonitor(),
         TQDMProgressBar(refresh_rate=10),
     ]
-    return checkpoint_callbacks
 
 
 def train_model(args: FTNetArgs, ckp: checkpoint) -> None:

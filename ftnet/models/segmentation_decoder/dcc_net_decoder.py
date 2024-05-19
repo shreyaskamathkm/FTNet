@@ -63,8 +63,7 @@ class BasicBlock(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        out = self.relu(out)
-        return out
+        return self.relu(out)
 
 
 class FeatureTransverseDecoder(nn.Module):

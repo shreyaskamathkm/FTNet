@@ -39,12 +39,11 @@ class TriangularPolicy:
 
     def __call__(self, t_cur, restart_period):
         inflection_point = self.triangular_step * restart_period
-        point_of_triangle = (
+        return (
             t_cur / inflection_point
             if t_cur < inflection_point
             else 1.0 - (t_cur - inflection_point) / (restart_period - inflection_point)
-        )
-        return point_of_triangle
+        )  # point_of_triangle
 
 
 class CyclicLRWithRestarts(_LRScheduler):

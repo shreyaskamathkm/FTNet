@@ -106,13 +106,12 @@ def get_ftnet(
 ):
     from data import datasets
 
-    model = FNet(
+    return FNet(
         nclass=datasets[dataset.lower()].NUM_CLASS,
         backbone=backbone,
         pretrained_base=pretrained_base,
         **kwargs,
     )
-    return model
 
 
 if __name__ == "__main__":
