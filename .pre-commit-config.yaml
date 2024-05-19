@@ -6,6 +6,7 @@ repos:
       - id: check-case-conflict # checks for files that would conflict in case-insensitive filesystem.
       - id: check-merge-conflict # checks for files that contain merge conflict strings.
       - id: check-yaml # checks yaml files for parsable syntax.
+      - id: check-toml # checks toml files for parsable syntax.
       - id: detect-private-key # detects the presence of private keys.
       - id: end-of-file-fixer # ensures that a file is either empty, or ends with one newline.
       - id: fix-byte-order-marker # removes utf-8 byte order marker.

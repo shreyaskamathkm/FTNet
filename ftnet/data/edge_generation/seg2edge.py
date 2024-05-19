@@ -24,9 +24,7 @@ def seg2edge(seg, radius, label_ignore=None, edge_type="regular"):
 
     height, width, chn = seg.shape
     if label_ignore is not None and chn != label_ignore.shape[1]:
-        raise ValueError(
-            "Channel dimension of segmentation and label_ignore must match."
-        )
+        raise ValueError("Channel dimension of segmentation and label_ignore must match.")
 
     # Set neighborhood area
     radius_search = max(int(np.ceil(radius)), 1)
@@ -53,10 +51,7 @@ def seg2edge(seg, radius, label_ignore=None, edge_type="regular"):
 
         # Ignore out-of-bounds indices
         valid_idx = (
-            (neighbor_x >= 0)
-            & (neighbor_x < width)
-            & (neighbor_y >= 0)
-            & (neighbor_y < height)
+            (neighbor_x >= 0) & (neighbor_x < width) & (neighbor_y >= 0) & (neighbor_y < height)
         )
 
         # Extract center and neighbor labels
@@ -79,9 +74,7 @@ def seg2edge(seg, radius, label_ignore=None, edge_type="regular"):
                 np.any(neighbor_labels != 0, axis=1),
             )
         else:
-            raise ValueError(
-                "Invalid edge_type. Must be 'regular', 'inner', or 'outer'."
-            )
+            raise ValueError("Invalid edge_type. Must be 'regular', 'inner', or 'outer'.")
 
         # Exclude edges with labels to ignore (if label_ignore provided)
         if label_ignore is not None:
@@ -96,9 +89,7 @@ def seg2edge(seg, radius, label_ignore=None, edge_type="regular"):
                     ),
                     axis=1,
                 )
-            diff_idx = diff_idx[
-                ~ignore_mask
-            ]  # Update diff_idx to exclude ignored edges
+            diff_idx = diff_idx[~ignore_mask]  # Update diff_idx to exclude ignored edges
 
         # Update edge map based on loop results
         edge_map[Y[valid_idx][diff_idx], X[valid_idx][diff_idx]] = (

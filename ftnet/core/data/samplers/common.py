@@ -30,7 +30,7 @@ def make_batch_data_sampler(
     sampler: Iterator, batch_size: int, num_iters: int = None, start_iter: int = 0
 ) -> Iterator:
     batch_sampler = data.sampler.BatchSampler(sampler, batch_size, drop_last=True)
-    if num_iters is not None:
+    if num_iters:
         batch_sampler = IterationBasedBatchSampler(batch_sampler, num_iters, start_iter)
     return batch_sampler
 
@@ -69,9 +69,7 @@ def make_multiscale_batch_data_sampler(
         scales=scales,
     )
     if num_iters:
-        batch_sampler = IterationBasedMultiscaleBatchSampler(
-            batch_sampler, num_iters, start_iter
-        )
+        batch_sampler = IterationBasedMultiscaleBatchSampler(batch_sampler, num_iters, start_iter)
     return batch_sampler
 
 

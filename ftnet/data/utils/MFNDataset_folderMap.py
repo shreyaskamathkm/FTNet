@@ -11,9 +11,7 @@ import pandas as pd
 
 
 def is_image_file(filename):
-    return any(
-        filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"]
-    )
+    return any(filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"])
 
 
 def str2bool(v):
@@ -36,9 +34,9 @@ def copying(tiles, path_label, destpath, fileset_path):
 
 def create_df(txt_path, imageid_path_dict, blacklist_df):
     df = pd.read_table(txt_path, delim_whitespace=True, names=("Image_Name", "B"))
-    df = df.sort_values(
-        by="Image_Name", axis=0, ascending=True, kind="quicksort"
-    ).reset_index(drop=True)
+    df = df.sort_values(by="Image_Name", axis=0, ascending=True, kind="quicksort").reset_index(
+        drop=True
+    )
     df = df.fillna("NA")
     del df["B"]
     df["Image_Path"] = df["Image_Name"].map(imageid_path_dict.get)
@@ -66,9 +64,7 @@ def copy_files_from_df(df, destpath, main_dirs_image, main_dirs_mask):
         destpath=destpath,
         fileset_path=main_dirs_image,
     )
-    copying(
-        tiles=df, path_label="Mask_Path", destpath=destpath, fileset_path=main_dirs_mask
-    )
+    copying(tiles=df, path_label="Mask_Path", destpath=destpath, fileset_path=main_dirs_mask)
 
 
 def distribute(input_dir, output_dir, reset):
@@ -111,9 +107,7 @@ def distribute(input_dir, output_dir, reset):
         for x in glob(os.path.join(Image_path, "**", "**", "*.png"), recursive=True)
     }
 
-    blacklist_df = pd.read_table(
-        blacklist_path, delim_whitespace=True, names=("Image_Name", "B")
-    )
+    blacklist_df = pd.read_table(blacklist_path, delim_whitespace=True, names=("Image_Name", "B"))
 
     train_df = create_df(train_txt_path, imageid_path_dict, blacklist_df)
     validation_df = create_df(validation_txt_path, imageid_path_dict, blacklist_df)
@@ -138,11 +132,7 @@ if __name__ == "__main__":
         default="/mnt/1842213842211C4E/processed_dataset/",
         help="Path to save MFN Dataset",
     )
-    parser.add_argument(
-        "--reset", type=bool, default=True, help="Path to Cityscape Dataset"
-    )
+    parser.add_argument("--reset", type=bool, default=True, help="Path to Cityscape Dataset")
 
     args = parser.parse_args()
-    distribute(
-        input_dir=args.input_image_path, output_dir=args.save_path, reset=args.reset
-    )
+    distribute(input_dir=args.input_image_path, output_dir=args.save_path, reset=args.reset)

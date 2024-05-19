@@ -11,9 +11,7 @@ import pandas as pd
 
 
 def is_image_file(filename):
-    return any(
-        filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"]
-    )
+    return any(filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"])
 
 
 def str2bool(v):
@@ -168,11 +166,7 @@ if __name__ == "__main__":
         default="/mnt/1842213842211C4E/processed_dataset/",
         help="Path to save Scut-Seg Dataset",
     )
-    parser.add_argument(
-        "--reset", type=bool, default=True, help="Path to Cityscape Dataset"
-    )
+    parser.add_argument("--reset", type=bool, default=True, help="Path to Cityscape Dataset")
 
     args = parser.parse_args()
-    distribute(
-        input_dir=args.input_image_path, output_dir=args.save_path, reset=args.reset
-    )
+    distribute(input_dir=args.input_image_path, output_dir=args.save_path, reset=args.reset)

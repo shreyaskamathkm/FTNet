@@ -57,7 +57,7 @@ class LRScheduler:
         step_factor=0.1,
         warmup_epochs=0,
     ):
-        super(LRScheduler, self).__init__()
+        super().__init__()
         assert mode in ["constant", "step", "linear", "poly", "cosine"]
 
         if mode == "step":
@@ -112,9 +112,7 @@ class LRScheduler:
         if self.mode == "step":
             self.learning_rate = self.base_lr * factor
         else:
-            self.learning_rate = (
-                self.target_lr + (self.base_lr - self.target_lr) * factor
-            )
+            self.learning_rate = self.target_lr + (self.base_lr - self.target_lr) * factor
 
     def _adjust_learning_rate(self, optimizer, lr):
         optimizer.param_groups[0]["lr"] = lr
@@ -152,7 +150,7 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
         self.warmup_factor = warmup_factor
         self.warmup_iters = warmup_iters
         self.warmup_method = warmup_method
-        super(WarmupMultiStepLR, self).__init__(optimizer, last_epoch)
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         warmup_factor = 1
@@ -163,9 +161,7 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
                 alpha = float(self.last_epoch) / self.warmup_iters
                 warmup_factor = self.warmup_factor * (1 - alpha) + alpha
         return [
-            base_lr
-            * warmup_factor
-            * self.gamma ** bisect_right(self.milestones, self.last_epoch)
+            base_lr * warmup_factor * self.gamma ** bisect_right(self.milestones, self.last_epoch)
             for base_lr in self.base_lrs
         ]
 
@@ -196,7 +192,7 @@ class WarmupPolyLR(torch.optim.lr_scheduler._LRScheduler):
         self.warmup_iters = warmup_iters
         self.warmup_method = warmup_method
 
-        super(WarmupPolyLR, self).__init__(optimizer, last_epoch)
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         N = self.max_iters - self.warmup_iters

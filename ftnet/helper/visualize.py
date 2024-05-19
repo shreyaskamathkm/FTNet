@@ -138,13 +138,11 @@ def print_iou(iu, mean_pixel_acc, class_names=None, show_no_back=False):
     mean_IU_no_back = np.nanmean(iu[1:])
     if show_no_back:
         lines.append(
-            "mean_IU: %.3f%% || mean_IU_no_back: %.3f%% || mean_pixel_acc: %.3f%%"
-            % (mean_IU * 100, mean_IU_no_back * 100, mean_pixel_acc * 100)
+            f"mean_IU: {mean_IU * 100:.3f}% || mean_IU_no_back: {mean_IU_no_back * 100:3f}% || mean_pixel_acc: {mean_pixel_acc * 100:3f}%"
         )
     else:
         lines.append(
-            "mean_IU: %.3f%% || mean_pixel_acc: %.3f%%"
-            % (mean_IU * 100, mean_pixel_acc * 100)
+            f"mean_IU: {mean_IU * 100:.3f}% || mean_pixel_acc: {mean_pixel_acc * 100:3f}%"
         )
     lines.append("=================================================")
     line = "\n".join(lines)

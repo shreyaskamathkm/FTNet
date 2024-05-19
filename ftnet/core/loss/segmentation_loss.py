@@ -23,16 +23,16 @@ class MixSoftmaxCrossEntropyLoss(nn.CrossEntropyLoss):
         ignore_index: int = -1,
         **kwargs: Any,
     ) -> None:
-        super(MixSoftmaxCrossEntropyLoss, self).__init__(ignore_index=ignore_index)
+        super().__init__(ignore_index=ignore_index)
         self.aux = aux
         self.aux_weight = aux_weight
 
     def _aux_forward(self, *inputs: torch.Tensor, **kwargs: Any):
         *preds, target = tuple(inputs)
 
-        loss = super(MixSoftmaxCrossEntropyLoss, self).forward(preds[0], target)
+        loss = super().forward(preds[0], target)
         for i in range(1, len(preds)):
-            aux_loss = super(MixSoftmaxCrossEntropyLoss, self).forward(preds[i], target)
+            aux_loss = super().forward(preds[i], target)
             loss += self.aux_weight * aux_loss
         return loss
 
@@ -44,15 +44,13 @@ class MixSoftmaxCrossEntropyLoss(nn.CrossEntropyLoss):
         if self.aux:
             return self._aux_forward(*inputs)
         else:
-            return super(MixSoftmaxCrossEntropyLoss, self).forward(*inputs)
+            return super().forward(*inputs)
 
 
 class EdgeNetLoss(nn.Module):
     # https://github.com/gasparian/PicsArtHack-binary-segmentation/blob/ecab001f334949d5082a79b8fbd1dc2fdb8b093e/utils.py#L217
-    def __init__(
-        self, bce_weight: float = None, loss_weight: int = 1, **kwargs: Any
-    ) -> None:
-        super(EdgeNetLoss, self).__init__()
+    def __init__(self, bce_weight: float = None, loss_weight: int = 1, **kwargs: Any) -> None:
+        super().__init__()
         self.cross_entropy = MixSoftmaxCrossEntropyLoss(**kwargs)
         self.loss_weight = loss_weight
 
@@ -71,9 +69,7 @@ class EdgeNetLoss(nn.Module):
             pred_class_map, pred_edge_map = inputs[0]
             target_maps, target_edges = inputs[1]
 
-        loss1 = self.loss_weight * (
-            self.auto_weight_bce(pred_edge_map, target_edges.float())
-        )
+        loss1 = self.loss_weight * (self.auto_weight_bce(pred_edge_map, target_edges.float()))
         loss2 = self.cross_entropy(pred_class_map, target_maps)
         logger.debug(f"loss_weight: {self.loss_weight} loss1: {loss1}  loss2: {loss2} ")
         return loss1 + loss2

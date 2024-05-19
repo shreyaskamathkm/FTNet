@@ -18,9 +18,7 @@ import torch.nn.functional as F
 
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding."""
-    return nn.Conv2d(
-        in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
-    )
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
 class BasicBlock(nn.Module):
@@ -35,10 +33,8 @@ class BasicBlock(nn.Module):
         previous_dilation=1,
         downsample=None,
     ):
-        super(BasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(
-            inplanes, planes, 3, stride, dilation, dilation, bias=False
-        )
+        super().__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, 3, stride, dilation, dilation, bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=0.01)
         self.relu = nn.ReLU(True)
         self.conv2 = nn.Conv2d(
@@ -82,7 +78,7 @@ class FeatureTransverseDecoder(nn.Module):
         dilation,
         edge_extract=None,
     ):
-        super(FeatureTransverseDecoder, self).__init__()
+        super().__init__()
         self._check_branches(
             num_branches, blocks, num_blocks, num_inchannels, num_channels, dilation
         )
@@ -120,9 +116,7 @@ class FeatureTransverseDecoder(nn.Module):
             )
         )
 
-        self.branches = self._make_branches(
-            num_branches, blocks, num_blocks, num_channels
-        )
+        self.branches = self._make_branches(num_branches, blocks, num_blocks, num_channels)
         self.fuse_layers = self._make_fuse_layers()
         self.relu = nn.ReLU(inplace=True)
 
@@ -135,19 +129,21 @@ class FeatureTransverseDecoder(nn.Module):
             raise ValueError(error_msg)
 
         if num_branches != len(num_channels):
-            error_msg = f"NUM_BRANCHES({num_branches})  NOT EQUAL TO NUM_CHANNELS({len(num_channels)})"
+            error_msg = (
+                f"NUM_BRANCHES({num_branches})  NOT EQUAL TO NUM_CHANNELS({len(num_channels)})"
+            )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         if num_branches != len(num_inchannels):
-            error_msg = f"NUM_BRANCHES({num_branches})  NOT EQUAL TO NUM_INCHANNELS({len(num_inchannels)})"
+            error_msg = (
+                f"NUM_BRANCHES({num_branches})  NOT EQUAL TO NUM_INCHANNELS({len(num_inchannels)})"
+            )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         if num_branches != len(dilation):
-            error_msg = (
-                f"NUM_BRANCHES({num_branches})  NOT EQUAL TO Dilation({len(dilation)})"
-            )
+            error_msg = f"NUM_BRANCHES({num_branches})  NOT EQUAL TO Dilation({len(dilation)})"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -155,8 +151,7 @@ class FeatureTransverseDecoder(nn.Module):
         downsample = None
         if (
             stride != 1
-            or self.num_inchannels[branch_index]
-            != num_channels[branch_index] * block.expansion
+            or self.num_inchannels[branch_index] != num_channels[branch_index] * block.expansion
         ):
             downsample = nn.Sequential(
                 nn.Conv2d(
@@ -166,9 +161,7 @@ class FeatureTransverseDecoder(nn.Module):
                     stride=stride,
                     bias=False,
                 ),
-                nn.BatchNorm2d(
-                    num_channels[branch_index] * block.expansion, momentum=0.01
-                ),
+                nn.BatchNorm2d(num_channels[branch_index] * block.expansion, momentum=0.01),
             )
 
         layers = []
@@ -251,9 +244,7 @@ class FeatureTransverseDecoder(nn.Module):
                                             dilation=self.dilation[i],
                                             bias=False,
                                         ),
-                                        nn.BatchNorm2d(
-                                            num_outchannels_conv3x3, momentum=0.01
-                                        ),
+                                        nn.BatchNorm2d(num_outchannels_conv3x3, momentum=0.01),
                                     )
                                 )
                             else:
@@ -267,9 +258,7 @@ class FeatureTransverseDecoder(nn.Module):
                                             padding=1,
                                             bias=False,
                                         ),
-                                        nn.BatchNorm2d(
-                                            num_outchannels_conv3x3, momentum=0.01
-                                        ),
+                                        nn.BatchNorm2d(num_outchannels_conv3x3, momentum=0.01),
                                     )
                                 )
                         else:
@@ -282,17 +271,15 @@ class FeatureTransverseDecoder(nn.Module):
                                             out_channels=num_outchannels_conv3x3,
                                             kernel_size=3,
                                             stride=1,
-                                            padding=self.dilation[
-                                                -(num_branches - j - 1) :
-                                            ][branch_index],
-                                            dilation=self.dilation[
-                                                -(num_branches - j - 1) :
-                                            ][branch_index],
+                                            padding=self.dilation[-(num_branches - j - 1) :][
+                                                branch_index
+                                            ],
+                                            dilation=self.dilation[-(num_branches - j - 1) :][
+                                                branch_index
+                                            ],
                                             bias=False,
                                         ),
-                                        nn.BatchNorm2d(
-                                            num_outchannels_conv3x3, momentum=0.01
-                                        ),
+                                        nn.BatchNorm2d(num_outchannels_conv3x3, momentum=0.01),
                                         nn.ReLU(inplace=True),
                                     )
                                 )
@@ -308,9 +295,7 @@ class FeatureTransverseDecoder(nn.Module):
                                             padding=1,
                                             bias=False,
                                         ),
-                                        nn.BatchNorm2d(
-                                            num_outchannels_conv3x3, momentum=0.01
-                                        ),
+                                        nn.BatchNorm2d(num_outchannels_conv3x3, momentum=0.01),
                                         nn.ReLU(inplace=True),
                                     )
                                 )
@@ -333,9 +318,7 @@ class FeatureTransverseDecoder(nn.Module):
             if i in self.edge_extract:
                 temp = self.edges[j](x[i])
                 edge_feats.append(
-                    F.interpolate(
-                        temp, size=(h, w), mode="bilinear", align_corners=True
-                    )
+                    F.interpolate(temp, size=(h, w), mode="bilinear", align_corners=True)
                 )
                 j += 1
 
@@ -362,8 +345,6 @@ class FeatureTransverseDecoder(nn.Module):
                     y = y + self.fuse_layers[i][j](x[j])
 
             x_fuse.append(
-                F.interpolate(
-                    self.relu(y), size=(h, w), mode="bilinear", align_corners=True
-                )
+                F.interpolate(self.relu(y), size=(h, w), mode="bilinear", align_corners=True)
             )
         return x_fuse, edge

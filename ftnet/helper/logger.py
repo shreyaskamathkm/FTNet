@@ -9,10 +9,16 @@ __all__ = ["setup_logger"]
 
 MINIMUM_GLOBAL_LEVEL = logging.DEBUG
 GLOBAL_HANDLER = logging.StreamHandler(stream=sys.stdout)
-LOG_FORMAT = (
-    "[%(asctime)s] - %(levelname)s - [%(name)s.%(funcName)s:%(lineno)d] - %(message)s"
-)
+LOG_FORMAT = "[%(asctime)s] - %(levelname)s - [%(name)s.%(funcName)s:%(lineno)d] - %(message)s"
 LOG_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+import logging.config
+
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": True,
+    }
+)
 
 
 # @rank_zero_only
@@ -48,7 +54,7 @@ def setup_logger(
             filename = save_dir / "log.txt"
 
         if distributed_rank > 0:
-            filename = filename + ".rank{}".format(distributed_rank)
+            filename = filename + f".rank{distributed_rank}"
 
         save_dir.mkdir(parents=True, exist_ok=True)
 

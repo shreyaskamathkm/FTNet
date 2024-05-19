@@ -31,7 +31,7 @@ class BaseTrainer(LightningModule):
         train: bool = True,
         **kwargs: Any,
     ) -> None:
-        super(BaseTrainer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.ckp = ckp
         self.args = args
         self.seg_dir = Path(self.ckp.get_path("Segmented_images"))  # type: ignore
@@ -84,35 +84,6 @@ class BaseTrainer(LightningModule):
             **data_kwargs,
         )
 
-    @property
-    def num_training_steps(self) -> int:
-        """Total training steps inferred from datamodule and devices.
-
-        Adapted from - https://github.com/Lightning-AI/pytorch-lightning/discussions/2149
-        """
-
-        if self.trainer.max_steps:
-            return self.trainer.max_steps
-
-        limit_batches = self.trainer.limit_train_batches
-        batches = len(self.train_dataloader())
-        batches = (
-            min(batches, limit_batches)
-            if isinstance(limit_batches, int)
-            else int(limit_batches * batches)
-        )
-
-        num_devices = max(1, self.trainer.num_devices, self.trainer.num_nodes)
-        if self.trainer.tpu_cores:
-            num_devices = max(num_devices, self.trainer.tpu_cores)
-
-        effective_accum = self.trainer.accumulate_grad_batches * num_devices
-        return (batches // effective_accum) * self.trainer.max_epochs
-
-    @property
-    def steps_per_epoch(self) -> int:
-        return self.num_training_steps // self.trainer.max_epochs
-
     def configure_optimizers(self):
         logger.info("Setting Up Optimizer")
 
@@ -149,9 +120,7 @@ class BaseTrainer(LightningModule):
             last_epoch=-1,
         )
 
-        return [optimizer], [
-            {"scheduler": scheduler, "interval": scheduler.__interval__}
-        ]
+        return [optimizer], [{"scheduler": scheduler, "interval": scheduler.__interval__}]
 
     def train_dataloader(self) -> torch.utils.data.DataLoader:
         self.distributed = max(1, self.trainer.num_devices, self.trainer.num_nodes)
@@ -162,9 +131,7 @@ class BaseTrainer(LightningModule):
         self.args.trainer.val_batch_size = max(
             1, int(self.args.trainer.val_batch_size / self.distributed)
         )
-        self.args.compute.workers = max(
-            1, int(self.args.compute.workers / self.distributed)
-        )
+        self.args.compute.workers = max(1, int(self.args.compute.workers / self.distributed))
 
         train_sampler = make_data_sampler(
             dataset=self.train_dataset,
@@ -176,7 +143,7 @@ class BaseTrainer(LightningModule):
             sampler=train_sampler,
             batch_size=self.args.trainer.train_batch_size,
             multiscale_step=1,
-            scales=len(self.args.dataset.crop_size),
+            scales=len(min(self.args.dataset.base_size, self.args.dataset.crop_size)),
         )
 
         train_loader = torch.utils.data.DataLoader(
@@ -198,16 +165,16 @@ class BaseTrainer(LightningModule):
         val_sampler = make_data_sampler(
             dataset=self.val_dataset,
             shuffle=False,
-            distributed=(self.trainer.use_ddp or self.trainer.use_ddp2),
+            distributed=self.distributed > 1,
         )
 
         val_batch_sampler = make_batch_data_sampler(
-            val_sampler, batch_size=self.hparams.args.val_batch_size
+            val_sampler, batch_size=self.args.trainer.val_batch_size
         )
         val_loader = torch.utils.data.DataLoader(
             dataset=self.val_dataset,
             batch_sampler=val_batch_sampler,
-            num_workers=self.hparams.args.workers,
+            num_workers=self.args.compute.workers,
             pin_memory=True,
         )
 
@@ -301,13 +268,9 @@ class BaseTrainer(LightningModule):
 
         elif hasattr(self.model, "url"):
             path = (
-                Path(__file__).resolve().parent.parent
-                / "model_downloads"
-                / self.args.model_name
+                Path(__file__).resolve().parent.parent / "model_downloads" / self.args.model_name
             )
-            load_from = torch.hub.load_state_dict_from_url(
-                self.model.url, model_dir=path
-            )
+            load_from = torch.hub.load_state_dict_from_url(self.model.url, model_dir=path)
             self.model.load_state_dict(load_from, strict=True)
             logger.info(path)
 

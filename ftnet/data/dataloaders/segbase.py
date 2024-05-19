@@ -53,7 +53,7 @@ class SegmentationDataset:
         base_size: List[List[int]] = [[520, 520]],
         crop_size: List[List[int]] = [[480, 480]],
     ) -> None:
-        super(SegmentationDataset, self).__init__()
+        super().__init__()
         self.root = root
         self.split = split
         self.mode = mode or split
@@ -61,9 +61,7 @@ class SegmentationDataset:
         self.crop_size = crop_size
 
         edge_radius = 7
-        self.edge_kernel = cv2.getStructuringElement(
-            cv2.MORPH_RECT, (edge_radius, edge_radius)
-        )
+        self.edge_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (edge_radius, edge_radius))
 
         if self.mode != "testval":
             base_sizes = [ImageSize(base[0], base[1]) for base in base_size]
@@ -81,8 +79,8 @@ class SegmentationDataset:
         scale: Union[int, None] = None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Synchronously transform validation images."""
-        outsize = self.crop_size[0]
-        short_size = outsize
+        outsize = self.sizes[0].crop_size
+        short_size = min(outsize.width, outsize.height)
         w, h = img.size
 
         if w > h:
@@ -97,11 +95,11 @@ class SegmentationDataset:
 
         # center crop
         w, h = img.size
-        x1 = int(round((w - outsize) / 2.0))
-        y1 = int(round((h - outsize) / 2.0))
-        img = img.crop((x1, y1, x1 + outsize, y1 + outsize))
-        mask = mask.crop((x1, y1, x1 + outsize, y1 + outsize))
-        edge = edge.crop((x1, y1, x1 + outsize, y1 + outsize))
+        x1 = int(round((w - outsize.width) / 2.0))
+        y1 = int(round((h - outsize.height) / 2.0))
+        img = img.crop((x1, y1, x1 + outsize.width, y1 + outsize.height))
+        mask = mask.crop((x1, y1, x1 + outsize.width, y1 + outsize.height))
+        edge = edge.crop((x1, y1, x1 + outsize.width, y1 + outsize.height))
 
         # final transform
         img = self._img_transform(img)

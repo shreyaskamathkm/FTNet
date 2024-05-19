@@ -31,13 +31,9 @@ def distribute(input_dir, output_dir, reset):
         if not path.exists():
             path.mkdir(parents=True)
 
-    imageid_path_dict = {
-        Path(x).stem: x for x in glob(str(basepath / "**/*.jpg"), recursive=True)
-    }
+    imageid_path_dict = {Path(x).stem: x for x in glob(str(basepath / "**/*.jpg"), recursive=True)}
 
-    tile_df = pd.DataFrame(
-        imageid_path_dict.items(), columns=["Image_Name", "Image_Path"]
-    )
+    tile_df = pd.DataFrame(imageid_path_dict.items(), columns=["Image_Name", "Image_Path"])
     tile_df = tile_df.sort_values(
         by="Image_Name", axis=0, ascending=True, kind="quicksort"
     ).reset_index(drop=True)

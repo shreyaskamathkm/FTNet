@@ -40,7 +40,7 @@ class SplAtConv2d(Module):
         dropblock_prob=0.0,
         **kwargs,
     ):
-        super(SplAtConv2d, self).__init__()
+        super().__init__()
         padding = _pair(padding)
         self.rectify = rectify and (padding[0] > 0 or padding[1] > 0)
         self.rectify_avg = rectify_avg

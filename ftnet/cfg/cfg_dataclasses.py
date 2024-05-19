@@ -99,9 +99,7 @@ class FTNetArgs(BaseModel):
 
     @classmethod
     def from_config(cls, config: SimpleNamespace):
-        if isinstance(
-            config, str
-        ):  # If a string is provided, assume it's a TOML file path
+        if isinstance(config, str):  # If a string is provided, assume it's a TOML file path
             config_dict = toml.load(config)
         elif isinstance(config, dict):  # If a dictionary is provided, use it directly
             config_dict = config
@@ -114,8 +112,6 @@ class FTNetArgs(BaseModel):
         allowed_keys = set(cls.model_fields.keys())
         extra_keys = set(config_dict) - allowed_keys
         if extra_keys:
-            raise ValueError(
-                f"Unexpected keys found in config: {', '.join(extra_keys)}"
-            )
+            raise ValueError(f"Unexpected keys found in config: {', '.join(extra_keys)}")
 
         return cls.model_validate(config_dict)

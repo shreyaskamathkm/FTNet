@@ -35,9 +35,7 @@ def is_image_file(filename):
 
 
 image_list = [
-    x
-    for x in glob.glob(os.path.join(args.test_folder, "*"), recursive=True)
-    if is_image_file(x)
+    x for x in glob.glob(os.path.join(args.test_folder, "*"), recursive=True) if is_image_file(x)
 ]
 
 
@@ -51,9 +49,7 @@ def caluate_MSTD(paths):
 
 start = time.time()
 with ThreadPool(6) as p:
-    patch_grids = list(
-        tqdm.tqdm(p.imap(caluate_MSTD, image_list), total=len(image_list))
-    )
+    patch_grids = list(tqdm.tqdm(p.imap(caluate_MSTD, image_list), total=len(image_list)))
 
 all_img_means = [x[0] for x in patch_grids]
 all_img_std = [x[1] for x in patch_grids]

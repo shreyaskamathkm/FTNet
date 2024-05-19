@@ -44,22 +44,29 @@ priority = "explicit"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.7.0"
+ruff = "^0.4.4"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.ruff]
+line-length = 99
 
+# [tool.ruff.format]
+# quote-style = "single"
+# indent-style = "tab"
+# docstring-code-format = true
 
 [tool.ruff.lint]
 # NOTE: Synchoronize the ignores with .flake8
-# select = [
-#     "E", "W",  # see: https://pypi.org/project/pycodestyle
-#     "F",  # see: https://pypi.org/project/pyflakes
-#     "S",  # see: https://pypi.org/project/flake8-bandit
-#     "RUF018",  # see: https://docs.astral.sh/ruff/rules/assignment-in-assert
-#     "UP", # see: https://docs.astral.sh/ruff/rules/#pyupgrade-up
-# ]
+select = [
+    "E", "W",  # see: https://pypi.org/project/pycodestyle
+    "F",  # see: https://pypi.org/project/pyflakes
+    # "S",  # see: https://pypi.org/project/flake8-bandit
+    "RUF018",  # see: https://docs.astral.sh/ruff/rules/assignment-in-assert
+    "UP", # see: https://docs.astral.sh/ruff/rules/#pyupgrade-up
+]
 extend-select = [
     "I",  # see: isort
     "C4",  # see: https://pypi.org/project/flake8-comprehensions
@@ -73,6 +80,7 @@ ignore = [
     "E402",
     "E731",
     "C417",
+    "E501",
 ]
 ignore-init-module-imports = true
 

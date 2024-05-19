@@ -72,10 +72,8 @@ class BasicBlock(nn.Module):
         dropblock_prob=0.0,
         last_gamma=False,
     ):
-        super(BasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(
-            inplanes, planes, 3, stride, dilation, dilation, bias=False
-        )
+        super().__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, 3, stride, dilation, dilation, bias=False)
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(True)
         self.conv2 = nn.Conv2d(
@@ -118,7 +116,7 @@ class DropBlock2D:
 class GlobalAvgPool2d(nn.Module):
     def __init__(self):
         """Global average pooling over the input's spatial dimensions."""
-        super(GlobalAvgPool2d, self).__init__()
+        super().__init__()
 
     def forward(self, inputs):
         return nn.functional.adaptive_avg_pool2d(inputs, 1).view(inputs.size(0), -1)
@@ -150,7 +148,7 @@ class Bottleneck(nn.Module):
         dropblock_prob=0.0,
         last_gamma=False,
     ):
-        super(Bottleneck, self).__init__()
+        super().__init__()
         group_width = int(planes * (bottleneck_width / 64.0)) * cardinality
         self.conv1 = nn.Conv2d(inplanes, group_width, kernel_size=1, bias=False)
         self.bn1 = norm_layer(group_width)
@@ -322,7 +320,7 @@ class ResNet(nn.Module):
         self.avd = avd
         self.avd_first = avd_first
 
-        super(ResNet, self).__init__()
+        super().__init__()
         self.feature_list = []
         self.rectified_conv = rectified_conv
         self.rectify_avg = rectify_avg
@@ -377,14 +375,10 @@ class ResNet(nn.Module):
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(
-            block, 64, layers[0], norm_layer=norm_layer, is_first=False
-        )
+        self.layer1 = self._make_layer(block, 64, layers[0], norm_layer=norm_layer, is_first=False)
         self.feature_list.append(self.inplanes)
 
-        self.layer2 = self._make_layer(
-            block, 128, layers[1], stride=2, norm_layer=norm_layer
-        )
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, norm_layer=norm_layer)
         self.feature_list.append(self.inplanes)
 
         if dilated or dilation == 4:
@@ -818,9 +812,7 @@ if __name__ == "__main__":
     from os import path, sys
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-    sys.path.append(
-        os.path.join(path.dirname(path.dirname(path.abspath(__file__))), "..")
-    )
+    sys.path.append(os.path.join(path.dirname(path.dirname(path.abspath(__file__))), ".."))
     from ptflops import get_model_complexity_info
 
     img = torch.randint(3, 5, (2, 3, 512, 512)).float()

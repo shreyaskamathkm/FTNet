@@ -57,7 +57,7 @@ class CyclicCosAnnealingLR(_LRScheduler):
         self.milestones2 = decay_milestones
 
         self.gamma = gamma
-        super(CyclicCosAnnealingLR, self).__init__(optimizer, last_epoch)
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         if self.last_epoch >= self.milestones[-1]:
@@ -75,8 +75,7 @@ class CyclicCosAnnealingLR(_LRScheduler):
             return [
                 self.eta_min
                 + (
-                    base_lr
-                    * self.gamma ** bisect_right(self.milestones2, self.last_epoch)
+                    base_lr * self.gamma ** bisect_right(self.milestones2, self.last_epoch)
                     - self.eta_min
                 )
                 * (1 + math.cos(math.pi * curr_pos / width))
@@ -86,9 +85,7 @@ class CyclicCosAnnealingLR(_LRScheduler):
         else:
             return [
                 self.eta_min
-                + (base_lr - self.eta_min)
-                * (1 + math.cos(math.pi * curr_pos / width))
-                / 2
+                + (base_lr - self.eta_min) * (1 + math.cos(math.pi * curr_pos / width)) / 2
                 for base_lr in self.base_lrs
             ]
 
@@ -133,7 +130,7 @@ class CyclicLinearLR(_LRScheduler):
         self.gamma = gamma
         self.milestones = milestones
         self.milestones2 = decay_milestones
-        super(CyclicLinearLR, self).__init__(optimizer, last_epoch)
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         if self.last_epoch >= self.milestones[-1]:
@@ -151,8 +148,7 @@ class CyclicLinearLR(_LRScheduler):
             return [
                 self.eta_min
                 + (
-                    base_lr
-                    * self.gamma ** bisect_right(self.milestones2, self.last_epoch)
+                    base_lr * self.gamma ** bisect_right(self.milestones2, self.last_epoch)
                     - self.eta_min
                 )
                 * (1.0 - 1.0 * curr_pos / width)

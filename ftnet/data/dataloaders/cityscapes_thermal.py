@@ -32,9 +32,7 @@ class CityscapesCombineThermalDataset(SegmentationDataset):
     ):
         root = os.path.join(root, self.BASE_FOLDER)
 
-        super(CityscapesCombineThermalDataset, self).__init__(
-            root, split, mode, base_size, crop_size, logger
-        )
+        super().__init__(root, split, mode, base_size, crop_size, logger)
 
         assert os.path.exists(self.root), "Error: data root path is wrong!"
 
@@ -228,9 +226,7 @@ def _get_city_pairs(folder, split="train", logger=None):
         img_folder = os.path.join(folder, "CITYSCAPE_5000/image/" + split)
         mask_folder = os.path.join(folder, "CITYSCAPE_5000/mask/" + split)
         edge_folder = os.path.join(folder, "CITYSCAPE_5000/edges/" + split)
-        img_paths, mask_paths, edge_paths = get_path_pairs(
-            img_folder, mask_folder, edge_folder
-        )
+        img_paths, mask_paths, edge_paths = get_path_pairs(img_folder, mask_folder, edge_folder)
         return img_paths, mask_paths, edge_paths
 
     return img_paths, mask_paths, edge_paths
@@ -240,9 +236,7 @@ if __name__ == "__main__":
     from os import path, sys
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-    sys.path.append(
-        os.path.join(path.dirname(path.dirname(path.abspath(__file__))), "..")
-    )
+    sys.path.append(os.path.join(path.dirname(path.dirname(path.abspath(__file__))), ".."))
     from core.data.samplers import make_data_sampler, make_multiscale_batch_data_sampler
     from torch.utils.data import DataLoader
 
@@ -260,9 +254,7 @@ if __name__ == "__main__":
         **data_kwargs,
     )
 
-    train_sampler = make_data_sampler(
-        dataset=train_dataset, shuffle=True, distributed=False
-    )
+    train_sampler = make_data_sampler(dataset=train_dataset, shuffle=True, distributed=False)
 
     train_batch_sampler = make_multiscale_batch_data_sampler(
         sampler=train_sampler, batch_size=1, multiscale_step=2, scales=2

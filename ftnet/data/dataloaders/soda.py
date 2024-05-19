@@ -27,22 +27,16 @@ class SODADataset(SegmentationDataset):
         sobel_edges: bool = False,
     ):
         root = Path(root) / self.BASE_FOLDER
-        super(SODADataset, self).__init__(root, split, mode, base_size, crop_size)
+        super().__init__(root, split, mode, base_size, crop_size)
         assert root.exists(), "Error: data root path is wrong!"
         self.sobel_edges = sobel_edges
 
         self.mean = [0.41079543, 0.41079543, 0.41079543]
         self.std = [0.18772296, 0.18772296, 0.18772296]
 
-        self.images, self.mask_paths, self.edge_paths = _get_soda_pairs(
-            root, self.split
-        )
-        assert len(self.images) == len(
-            self.mask_paths
-        ), "Mismatch between images and masks"
-        assert len(self.images) == len(
-            self.edge_paths
-        ), "Mismatch between images and edges"
+        self.images, self.mask_paths, self.edge_paths = _get_soda_pairs(root, self.split)
+        assert len(self.images) == len(self.mask_paths), "Mismatch between images and masks"
+        assert len(self.images) == len(self.edge_paths), "Mismatch between images and edges"
 
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
@@ -73,13 +67,9 @@ class SODADataset(SegmentationDataset):
 
         # synchronized transform
         if self.mode == "train":
-            img, mask, edge = self._sync_transform(
-                img=img, mask=mask, edge=edge, scale=scale
-            )
+            img, mask, edge = self._sync_transform(img=img, mask=mask, edge=edge, scale=scale)
         elif self.mode == "val":
-            img, mask, edge = self._val_sync_transform(
-                img=img, mask=mask, edge=edge, scale=scale
-            )
+            img, mask, edge = self._val_sync_transform(img=img, mask=mask, edge=edge, scale=scale)
         else:
             assert self.mode == "testval"
             img, mask, edge = (
@@ -163,9 +153,7 @@ def _get_soda_pairs(folder: Path, split: str = "train"):
         img_folder = folder / "image"
         mask_folder = folder / "mask"
         edge_folder = folder / "edges"
-        img_paths, mask_paths, edge_paths = get_path_pairs(
-            img_folder, mask_folder, edge_folder
-        )
+        img_paths, mask_paths, edge_paths = get_path_pairs(img_folder, mask_folder, edge_folder)
         return img_paths, mask_paths, edge_paths
 
 
@@ -186,9 +174,7 @@ if __name__ == "__main__":
         **data_kwargs,
     )
 
-    train_sampler = make_data_sampler(
-        dataset=train_dataset, shuffle=True, distributed=False
-    )
+    train_sampler = make_data_sampler(dataset=train_dataset, shuffle=True, distributed=False)
 
     train_batch_sampler = make_multiscale_batch_data_sampler(
         sampler=train_sampler, batch_size=1, multiscale_step=1, scales=1

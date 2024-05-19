@@ -23,7 +23,7 @@ BatchNorm2d = nn.BatchNorm2d
 
 class SegmentationLightningModel(BaseTrainer):
     def __init__(self, *args, **kwargs):
-        super(SegmentationLightningModel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load_metrics(self, mode, num_class, ignore_index):
         setattr(
@@ -127,9 +127,7 @@ class SegmentationLightningModel(BaseTrainer):
             "val_edge_accuracy": self.val_edge_accuracy.compute(),
         }
 
-        log_dict["val_loss"] = torch.stack(
-            [output["val_loss"] for output in outputs]
-        ).mean()
+        log_dict["val_loss"] = torch.stack([output["val_loss"] for output in outputs]).mean()
         self.log_dict(log_dict)
 
         self.val_edge_accuracy.reset()

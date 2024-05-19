@@ -32,15 +32,9 @@ class pl_IOU(Metric):
 
         self.ignore_index = ignore_index
         self.num_classes = num_classes
-        self.add_state(
-            "area_intersection", default=torch.zeros(num_classes), dist_reduce_fx="sum"
-        )
-        self.add_state(
-            "area_union", default=torch.zeros(num_classes), dist_reduce_fx="sum"
-        )
-        self.add_state(
-            "area_target", default=torch.zeros(num_classes), dist_reduce_fx="sum"
-        )
+        self.add_state("area_intersection", default=torch.zeros(num_classes), dist_reduce_fx="sum")
+        self.add_state("area_union", default=torch.zeros(num_classes), dist_reduce_fx="sum")
+        self.add_state("area_target", default=torch.zeros(num_classes), dist_reduce_fx="sum")
 
     def update(self, preds: torch.Tensor, target: torch.Tensor):
         preds = torch.argmax(preds.long(), 1)
@@ -54,12 +48,8 @@ class pl_IOU(Metric):
         area_intersection = torch.histc(
             intersection, bins=self.num_classes, min=0, max=self.num_classes - 1
         )
-        area_output = torch.histc(
-            preds, bins=self.num_classes, min=0, max=self.num_classes - 1
-        )
-        area_target = torch.histc(
-            target, bins=self.num_classes, min=0, max=self.num_classes - 1
-        )
+        area_output = torch.histc(preds, bins=self.num_classes, min=0, max=self.num_classes - 1)
+        area_target = torch.histc(target, bins=self.num_classes, min=0, max=self.num_classes - 1)
 
         self.area_union += area_output + area_target - area_intersection
         self.area_intersection += area_intersection
@@ -68,17 +58,13 @@ class pl_IOU(Metric):
     def compute_mean(self):
         mean_iou = torch.mean(self.area_intersection / (self.area_union + 1e-10))
         mean_accuracy = torch.mean(self.area_intersection / (self.area_target + 1e-10))
-        all_accuracy = torch.sum(self.area_intersection) / torch.sum(
-            self.area_target + 1e-10
-        )
+        all_accuracy = torch.sum(self.area_intersection) / torch.sum(self.area_target + 1e-10)
         return mean_iou, mean_accuracy, all_accuracy
 
     def compute(self):
         iou = self.area_intersection / (self.area_union + 1e-10)
         accuracy = self.area_intersection / (self.area_target + 1e-10)
-        all_accuracy = torch.sum(self.area_intersection) / torch.sum(
-            self.area_target + 1e-10
-        )
+        all_accuracy = torch.sum(self.area_intersection) / torch.sum(self.area_target + 1e-10)
         return iou, accuracy, all_accuracy
 
 
@@ -135,7 +121,7 @@ def intersectionAndUnion(
     """Compute IoU on Numpy arrays on CPU. We will be reasoning about each
     matrix cell individually, so we can reshape (flatten) these arrays into
     column vectors and the evaluation result won’t change. Compare
-    horizontally-corresponding cells. Wherever ground truth (target) pixels
+    horizontally- corresponding cells. Wherever ground truth (target) pixels
     should be ignored, set prediction also to the ignore label. `intersection`
     represents values (class indices) in cells where.
 

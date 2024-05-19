@@ -18,7 +18,7 @@ class Poly(_LRScheduler):
         self.power = power
         self.N = num_epochs * steps_per_epoch
         self.warmup_iters = warmup_epochs * steps_per_epoch
-        super(Poly, self).__init__(optimizer, last_epoch)
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         T = self.last_epoch * self.steps_per_epoch + self.cur_iter

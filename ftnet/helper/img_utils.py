@@ -27,9 +27,7 @@ def resize_by_scaled_short_side(
         new_h = round(short_size / float(w) * h)
     else:
         new_w = round(short_size / float(h) * w)
-    image_scaled = torch.nn.functional.interpolate(
-        image, (new_w, new_h), mode="bilinear"
-    )
+    image_scaled = torch.nn.functional.interpolate(image, (new_w, new_h), mode="bilinear")
     return image_scaled
 
 

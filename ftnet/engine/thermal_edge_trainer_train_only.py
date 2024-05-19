@@ -23,26 +23,27 @@ BatchNorm2d = nn.BatchNorm2d
 
 class SegmentationLightningModel(BaseTrainer):
     def __init__(self, *args, **kwargs):
-        super(SegmentationLightningModel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def load_metrics(self, mode, num_class, ignore_index):
         setattr(
             self,
             f"{mode}_confmat",
-            pl_ConfusionMatrix(num_classes=num_class).to(self.device),
+            pl_ConfusionMatrix(task="multiclass", num_classes=num_class).to(self.device),
         )
         setattr(
             self,
             f"{mode}_IOU",
             MulticlassJaccardIndex(
-                num_classes=num_class, ignore_index=ignore_index, reduction="none"
+                num_classes=num_class,
+                ignore_index=ignore_index,
             ).to(self.device),
         )
         setattr(self, f"{mode}_edge_accuracy", MeanMetric().to(self.device))
 
     def training_step(self, batch, batch_idx):
         images, target, edges, _ = batch
-        output = self.forward(images)
+        output = self.model(images)
         loss_val = self.criterion(output, (target, edges))
 
         class_map, edge_map = output
@@ -80,7 +81,7 @@ class SegmentationLightningModel(BaseTrainer):
 
     def validation_step(self, batch, batch_idx):
         images, target, edges, filename = batch
-        output = self.forward(images)
+        output = self.model(images)
         loss_val = self.criterion(output, (target, edges))
 
         class_map, edge_map = output
@@ -119,9 +120,7 @@ class SegmentationLightningModel(BaseTrainer):
             "val_edge_accuracy": self.val_edge_accuracy.compute(),
         }
 
-        log_dict["val_loss"] = torch.stack(
-            [output["val_loss"] for output in outputs]
-        ).mean()
+        log_dict["val_loss"] = torch.stack([output["val_loss"] for output in outputs]).mean()
         self.log_dict(log_dict)
 
         self.val_edge_accuracy.reset()

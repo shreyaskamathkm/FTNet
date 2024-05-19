@@ -51,31 +51,31 @@ class CyclicLRWithRestarts(_LRScheduler):
     """Decays learning rate with cosine annealing, normalizes weight decay
     hyperparameter value, implements restarts.
 
-    https://arxiv.org/abs/1711.05101
-    Args:
-        optimizer (Optimizer): Wrapped optimizer.
-        batch_size: minibatch size
-        steps_per_epoch: training samples per epoch
-        restart_period: epoch count in the first restart period
-        t_mult: multiplication factor by which the next restart period will expand/shrink
-        policy: ["cosine", "arccosine", "triangular", "triangular2", "exp_range"]
-        min_lr: minimum allowed learning rate
-        verbose: print a message on every restart
-        gamma: exponent used in "exp_range" policy
-        eta_on_restart_cb: callback executed on every restart, adjusts max or min lr
-        eta_on_iteration_cb: callback executed on every iteration, adjusts max or min lr
-        triangular_step: adjusts ratio of increasing/decreasing phases for triangular policy
-    Example:
-        >>> scheduler = CyclicLRWithRestarts(optimizer, 32, 1024, restart_period=5, t_mult=1.2)
-        >>> for epoch in range(100):
-        >>>     scheduler.step()
-        >>>     train(...)
-        >>>         ...
-        >>>         optimizer.zero_grad()
-        >>>         loss.backward()
-        >>>         optimizer.step()
-        >>>         scheduler.batch_step()
-        >>>     validate(...)
+                  https://arxiv.org/abs/1711.05101
+                  Args:
+               optimizer (Optimizer): Wrapped optimizer.
+               batch_size: minibatch size
+               steps_per_epoch: training samples per epoch
+               restart_period: epoch count in the first restart period
+               t_mult: multiplication factor by which the next restart period will expand/shrink
+               policy: ["cosine", "arccosine", "triangular", "triangular2", "exp_range"]
+               min_lr: minimum allowed learning rate
+               verbose: print a message on every restart
+               gamma: exponent used in "exp_range" policy
+               eta_on_restart_cb: callback executed on every restart, adjusts max or min lr
+               eta_on_iteration_cb: callback executed on every iteration, adjusts max or min lr
+               triangular_step: adjusts ratio of increasing/decreasing phases for triangular policy
+                  Example:
+               >>> scheduler = CyclicLRWithRestarts(optimizer, 32, 1024, restart_period=5, t_mult=1.2)
+               >>> for epoch in range(100):
+               >>>     scheduler.step()
+               >>>     train(...)
+               >>>         ...
+               >>>         optimizer.zero_grad()
+               >>>         loss.backward()
+               >>>         optimizer.step()
+               >>>         scheduler.batch_step()
+               >>>     validate(...)
     """
 
     def __init__(
@@ -117,9 +117,7 @@ class CyclicLRWithRestarts(_LRScheduler):
 
         self.min_lrs = [group["minimum_lr"] for group in optimizer.param_groups]
 
-        self.base_weight_decays = [
-            group["weight_decay"] for group in optimizer.param_groups
-        ]
+        self.base_weight_decays = [group["weight_decay"] for group in optimizer.param_groups]
 
         self.policy = policy
         self.eta_on_restart_cb = eta_on_restart_cb
@@ -162,9 +160,7 @@ class CyclicLRWithRestarts(_LRScheduler):
 
     def _on_restart(self):
         if self.eta_on_restart_cb is not None:
-            self.eta_min, self.eta_max = self.eta_on_restart_cb(
-                self.eta_min, self.eta_max
-            )
+            self.eta_min, self.eta_max = self.eta_on_restart_cb(self.eta_min, self.eta_max)
 
     def _on_iteration(self):
         if self.eta_on_iteration_cb is not None:

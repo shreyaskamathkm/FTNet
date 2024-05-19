@@ -12,9 +12,7 @@ __all__ = ["BatchSampler", "IterationBasedBatchSampler"]
 
 
 class BatchSampler:
-    def __init__(
-        self, sampler, batch_size, drop_last, multiscale_step=None, img_sizes=None
-    ):
+    def __init__(self, sampler, batch_size, drop_last, multiscale_step=None, img_sizes=None):
         if not isinstance(sampler, Sampler):
             raise ValueError(
                 "sampler should be an instance of "
@@ -29,8 +27,7 @@ class BatchSampler:
         self.drop_last = drop_last
         if multiscale_step is not None and multiscale_step < 1:
             raise ValueError(
-                "multiscale_step should be > 0, but got "
-                f"multiscale_step={multiscale_step}"
+                "multiscale_step should be > 0, but got " f"multiscale_step={multiscale_step}"
             )
         if multiscale_step is not None and img_sizes is None:
             raise ValueError(f"img_sizes must a list, but got img_sizes={img_sizes} ")

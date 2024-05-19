@@ -87,13 +87,9 @@ class AverageMeter(Metric):
                 to fit ``value``)
         """
         if not isinstance(value, Tensor):
-            value = torch.as_tensor(
-                value, dtype=torch.float32, device=self.value.device
-            )
+            value = torch.as_tensor(value, dtype=torch.float32, device=self.value.device)
         if not isinstance(weight, Tensor):
-            weight = torch.as_tensor(
-                weight, dtype=torch.float32, device=self.weight.device
-            )
+            weight = torch.as_tensor(weight, dtype=torch.float32, device=self.weight.device)
 
         # braodcast_to only supported on PyTorch 1.8+
         if not hasattr(torch, "broadcast_to"):

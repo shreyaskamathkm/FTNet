@@ -33,7 +33,7 @@ class FNet(SegBaseModel):
         dilated: bool = False,
         **kwargs,
     ):
-        super(FNet, self).__init__(
+        super().__init__(
             nclass=nclass,
             backbone=backbone,
             pretrained_base=pretrained_base,

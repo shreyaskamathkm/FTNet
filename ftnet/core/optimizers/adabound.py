@@ -64,12 +64,12 @@ class AdaBound(Optimizer):
             "weight_decay": weight_decay,
             "amsbound": amsbound,
         }
-        super(AdaBound, self).__init__(params, defaults)
+        super().__init__(params, defaults)
 
         self.base_lrs = list(map(lambda group: group["lr"], self.param_groups))
 
     def __setstate__(self, state):
-        super(AdaBound, self).__setstate__(state)
+        super().__setstate__(state)
         for group in self.param_groups:
             group.setdefault("amsbound", False)
 
@@ -199,12 +199,12 @@ class AdaBoundW(Optimizer):
             "weight_decay": weight_decay,
             "amsbound": amsbound,
         }
-        super(AdaBoundW, self).__init__(params, defaults)
+        super().__init__(params, defaults)
 
         self.base_lrs = list(map(lambda group: group["lr"], self.param_groups))
 
     def __setstate__(self, state):
-        super(AdaBoundW, self).__setstate__(state)
+        super().__setstate__(state)
         for group in self.param_groups:
             group.setdefault("amsbound", False)
 

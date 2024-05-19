@@ -32,9 +32,7 @@ class ImageTester:
             num_blocks=self.hparams.num_blocks,
         )
         self.model.to(self.device)
-        self.dummy_input = torch.randn(1, 3, 512, 512, dtype=torch.float).to(
-            self.device
-        )
+        self.dummy_input = torch.randn(1, 3, 512, 512, dtype=torch.float).to(self.device)
 
     def test(self):
         torch.set_grad_enabled(False)

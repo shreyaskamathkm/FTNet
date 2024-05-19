@@ -37,14 +37,12 @@ class Bottleneck(nn.Module):
         norm_layer=None,
         **kwargs,
     ):
-        super(Bottleneck, self).__init__()
+        super().__init__()
         width = int(planes * (base_width / 64.0)) * groups
 
         self.conv1 = nn.Conv2d(inplanes, width, 1, bias=False)
         self.bn1 = norm_layer(width)
-        self.conv2 = nn.Conv2d(
-            width, width, 3, stride, dilation, dilation, groups, bias=False
-        )
+        self.conv2 = nn.Conv2d(width, width, 3, stride, dilation, dilation, groups, bias=False)
         self.bn2 = norm_layer(width)
         self.conv3 = nn.Conv2d(width, planes * self.expansion, 1, bias=False)
         self.bn3 = norm_layer(planes * self.expansion)
@@ -88,7 +86,7 @@ class ResNext(nn.Module):
         norm_layer=nn.BatchNorm2d,
         **kwargs,
     ):
-        super(ResNext, self).__init__()
+        super().__init__()
         self.feature_list = []
         self.inplanes = 64
         self.groups = groups
@@ -103,9 +101,7 @@ class ResNext(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0], norm_layer=norm_layer)
         self.feature_list.append(self.inplanes)
 
-        self.layer2 = self._make_layer(
-            block, 128, layers[1], stride=2, norm_layer=norm_layer
-        )
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, norm_layer=norm_layer)
         self.feature_list.append(self.inplanes)
         if dilated:
             self.layer3 = self._make_layer(
@@ -117,13 +113,9 @@ class ResNext(nn.Module):
             )
             self.feature_list.append(self.inplanes)
         else:
-            self.layer3 = self._make_layer(
-                block, 256, layers[2], stride=2, norm_layer=norm_layer
-            )
+            self.layer3 = self._make_layer(block, 256, layers[2], stride=2, norm_layer=norm_layer)
             self.feature_list.append(self.inplanes)
-            self.layer4 = self._make_layer(
-                block, 512, layers[3], stride=2, norm_layer=norm_layer
-            )
+            self.layer4 = self._make_layer(block, 512, layers[3], stride=2, norm_layer=norm_layer)
             self.feature_list.append(self.inplanes)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
@@ -140,15 +132,11 @@ class ResNext(nn.Module):
                 if isinstance(m, Bottleneck):
                     nn.init.constant_(m.bn3.weight, 0)
 
-    def _make_layer(
-        self, block, planes, blocks, stride=1, dilation=1, norm_layer=nn.BatchNorm2d
-    ):
+    def _make_layer(self, block, planes, blocks, stride=1, dilation=1, norm_layer=nn.BatchNorm2d):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(
-                    self.inplanes, planes * block.expansion, 1, stride, bias=False
-                ),
+                nn.Conv2d(self.inplanes, planes * block.expansion, 1, stride, bias=False),
                 norm_layer(planes * block.expansion),
             )
 

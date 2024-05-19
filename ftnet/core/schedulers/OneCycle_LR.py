@@ -23,13 +23,9 @@ class OneCycle(_LRScheduler):
         self.phase2_iters = self.N - self.phase1_iters
         self.momentums = momentums
         self.mom_diff = momentums[1] - momentums[0]
-        self.low_lrs = [
-            opt_grp["lr"] / div_factor for opt_grp in optimizer.param_groups
-        ]
-        self.final_lrs = [
-            opt_grp["lr"] / (div_factor * 1e4) for opt_grp in optimizer.param_groups
-        ]
-        super(OneCycle, self).__init__(optimizer, last_epoch)
+        self.low_lrs = [opt_grp["lr"] / div_factor for opt_grp in optimizer.param_groups]
+        self.final_lrs = [opt_grp["lr"] / (div_factor * 1e4) for opt_grp in optimizer.param_groups]
+        super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
         T = self.last_epoch * self.iters_per_epoch + self.cur_iter

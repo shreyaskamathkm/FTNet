@@ -18,9 +18,7 @@ from .thermal_edge_trainer_train_only import (
 logger = logging.getLogger(__name__)
 
 
-def setup_pl_loggers(
-    args: FTNetArgs, ckp: checkpoint
-) -> tuple[TensorBoardLogger, WandbLogger]:
+def setup_pl_loggers(args: FTNetArgs, ckp: checkpoint) -> tuple[TensorBoardLogger, WandbLogger]:
     """Setup TensorBoard and Weights & Biases loggers."""
     tensorboard_logger = TensorBoardLogger(
         save_dir=ckp.get_path("logs"),
@@ -82,7 +80,7 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
         accumulate_grad_batches=args.trainer.accumulate_grad_batches,
         callbacks=checkpoint_callbacks,
         fast_dev_run=args.task.debug,
-        deterministic=True,
+        deterministic="warn",
         reload_dataloaders_every_n_epochs=1,
         use_distributed_sampler=False,
     )

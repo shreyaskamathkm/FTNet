@@ -46,9 +46,7 @@ class MultiscaleBatchSampler:
                 f"sampler should be an instance of torch.utils.data.Sampler, but got sampler={sampler}"
             )
         if not isinstance(drop_last, bool):
-            raise ValueError(
-                f"drop_last should be a boolean value, but got drop_last={drop_last}"
-            )
+            raise ValueError(f"drop_last should be a boolean value, but got drop_last={drop_last}")
         self.sampler = sampler
         self.batch_size = batch_size
         self.drop_last = drop_last
@@ -88,13 +86,11 @@ class MultiscaleBatchSampler:
 
 
 class IterationBasedMultiscaleBatchSampler(MultiscaleBatchSampler):
-    def __init__(
-        self, batch_sampler: Callable, num_iterations: int, start_iter: int = 0
-    ) -> None:
+    def __init__(self, batch_sampler: Callable, num_iterations: int, start_iter: int = 0) -> None:
         self.batch_sampler = batch_sampler
         self.num_iterations = num_iterations
         self.start_iter = start_iter
-        super(IterationBasedMultiscaleBatchSampler, self).__init__(
+        super().__init__(
             sampler=batch_sampler.sampler,
             batch_size=batch_sampler.batch_size,
             drop_last=False,

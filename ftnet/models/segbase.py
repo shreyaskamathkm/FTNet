@@ -24,10 +24,8 @@ def str_to_class(classname):
 
 
 class SegBaseModel(nn.Module):
-    def __init__(
-        self, nclass, backbone="ResNet50", pretrained_base=True, dilated=None, **kwargs
-    ):
-        super(SegBaseModel, self).__init__()
+    def __init__(self, nclass, backbone="ResNet50", pretrained_base=True, dilated=None, **kwargs):
+        super().__init__()
 
         if dilated is None:
             dilated = True

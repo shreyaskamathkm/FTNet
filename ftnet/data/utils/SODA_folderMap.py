@@ -11,9 +11,7 @@ from scipy.stats import wasserstein_distance
 
 
 def is_image_file(filename):
-    return any(
-        filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"]
-    )
+    return any(filename.endswith(extension) for extension in [".png", ".jpg", ".jpeg", ".bmp"])
 
 
 def plot_hist(split1_hist, split2_hist, num_per_class_perc, num_labels=21):
@@ -29,15 +27,9 @@ def plot_hist(split1_hist, split2_hist, num_per_class_perc, num_labels=21):
             split2_hist_ = split2_hist[split1_hist <= p]
             categories_ = categories[split1_hist <= p]
         else:
-            split1_hist_ = split1_hist[
-                (split1_hist <= p) & (split1_hist > percentile[i - 1])
-            ]
-            split2_hist_ = split2_hist[
-                (split1_hist <= p) & (split1_hist > percentile[i - 1])
-            ]
-            categories_ = categories[
-                (split1_hist <= p) & (split1_hist > percentile[i - 1])
-            ]
+            split1_hist_ = split1_hist[(split1_hist <= p) & (split1_hist > percentile[i - 1])]
+            split2_hist_ = split2_hist[(split1_hist <= p) & (split1_hist > percentile[i - 1])]
+            categories_ = categories[(split1_hist <= p) & (split1_hist > percentile[i - 1])]
         # Set up figure and axis
         _, ax = plt.subplots()
         # Bar plot for the first vector
@@ -53,9 +45,7 @@ def plot_hist(split1_hist, split2_hist, num_per_class_perc, num_labels=21):
         plt.savefig(f"./split_hist_{i}.png")
 
 
-def stratify(
-    file_path, num_permutations=50000, split_perc=0.5, random_seed=42, num_labels=21
-):
+def stratify(file_path, num_permutations=50000, split_perc=0.5, random_seed=42, num_labels=21):
     """
     Adapted from https://stackoverflow.com/questions/74202417/stratified-sampling-for-semantic-segmentation
     """
@@ -171,25 +161,17 @@ def distribute(input_dir, output_dir, reset):
             )
 
     # Process train set
-    train_df = pd.read_table(
-        train_Name_path, delim_whitespace=True, names=("Image_Name", "B")
-    )
+    train_df = pd.read_table(train_Name_path, delim_whitespace=True, names=("Image_Name", "B"))
     train_df["Image_Path"] = train_df["Image_Name"].map(imageid_path_dict.get)
     train_df["Mask_Path"] = train_df["Image_Path"].str.replace(".jpg", ".png")
-    train_df["Mask_Path"] = train_df["Mask_Path"].str.replace(
-        "JPEGImages", "SegmentationClassOne"
-    )
+    train_df["Mask_Path"] = train_df["Mask_Path"].str.replace("JPEGImages", "SegmentationClassOne")
     process_data(train_df, [main_dirs_image[0]], [main_dirs_mask[0]])
 
     # Process test and validation sets
-    test_df = pd.read_table(
-        test_Name_path, delim_whitespace=True, names=("Image_Name", "B")
-    )
+    test_df = pd.read_table(test_Name_path, delim_whitespace=True, names=("Image_Name", "B"))
     test_df["Image_Path"] = test_df["Image_Name"].map(imageid_path_dict.get)
     test_df["Mask_Path"] = test_df["Image_Path"].str.replace(".jpg", ".png")
-    test_df["Mask_Path"] = test_df["Mask_Path"].str.replace(
-        "JPEGImages", "SegmentationClassOne"
-    )
+    test_df["Mask_Path"] = test_df["Mask_Path"].str.replace("JPEGImages", "SegmentationClassOne")
 
     val_idx, test_idx = stratify(test_df["Mask_Path"])
     process_data(test_df.iloc[val_idx], [main_dirs_image[1]], [main_dirs_mask[1]])

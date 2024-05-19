@@ -31,9 +31,7 @@ class CityscapesThermalsSplitDataset(SegmentationDataset):
         transform=None,
     ):
         root = os.path.join(root, self.BASE_FOLDER)
-        super(CityscapesThermalsSplitDataset, self).__init__(
-            root, split, mode, base_size, crop_size, logger
-        )
+        super().__init__(root, split, mode, base_size, crop_size, logger)
         self.sobel_edges = sobel_edges
         assert os.path.exists(self.root), "Error: data root path is wrong!"
 
@@ -253,9 +251,7 @@ def _get_city_pairs(folder, split="train", logger=None):
         mask_folder = os.path.join(folder, "gtFine/" + split)
         edge_folder = os.path.join(folder, "gtFine/" + split)
         # img_paths与mask_paths的顺序是一一对应的
-        img_paths, mask_paths, edge_paths = get_path_pairs(
-            img_folder, mask_folder, edge_folder
-        )
+        img_paths, mask_paths, edge_paths = get_path_pairs(img_folder, mask_folder, edge_folder)
         return img_paths, mask_paths, edge_paths
     else:
         assert split == "trainval"
@@ -264,9 +260,7 @@ def _get_city_pairs(folder, split="train", logger=None):
         train_mask_folder = os.path.join(folder, "gtFine/train")
         val_img_folder = os.path.join(folder, "leftImg8bit/val")
         val_mask_folder = os.path.join(folder, "gtFine/val")
-        train_img_paths, train_mask_paths = get_path_pairs(
-            train_img_folder, train_mask_folder
-        )
+        train_img_paths, train_mask_paths = get_path_pairs(train_img_folder, train_mask_folder)
         val_img_paths, val_mask_paths = get_path_pairs(val_img_folder, val_mask_folder)
         img_paths = train_img_paths + val_img_paths
         mask_paths = train_mask_paths + val_mask_paths
@@ -291,9 +285,7 @@ if __name__ == "__main__":
         **data_kwargs,
     )
 
-    train_sampler = make_data_sampler(
-        dataset=train_dataset, shuffle=False, distributed=False
-    )
+    train_sampler = make_data_sampler(dataset=train_dataset, shuffle=False, distributed=False)
 
     train_batch_sampler = make_multiscale_batch_data_sampler(
         sampler=train_sampler, batch_size=10, multiscale_step=1, scales=2
