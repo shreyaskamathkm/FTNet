@@ -5,14 +5,12 @@ https://github.com/mseg-dataset/mseg-semantic
 Evaluation Metrics for Semantic Segmentation
 """
 
-from typing import Tuple
+from typing import Any, Optional, Tuple
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torchmetrics import Metric
-from typing import Any, Optional
-
 
 __all__ = ["pl_IOU", "intersectionAndUnionGPU", "intersectionAndUnion"]
 

@@ -4,12 +4,13 @@ https://github.com/facebookresearch/detectron2/blob/main/detectron2/utils/collec
 """
 
 import importlib
-import numpy as np
 import os
 import re
 import subprocess
 import sys
 from collections import defaultdict
+
+import numpy as np
 import PIL
 import torch
 import torchvision
@@ -103,6 +104,8 @@ def collect_env_info():
             try:
                 from torch.utils.collect_env import (
                     get_nvidia_driver_version,
+                )
+                from torch.utils.collect_env import (
                     run as _run,
                 )
 

@@ -7,12 +7,14 @@
 #####################################################################################################################################################################
 
 import logging
+from pathlib import Path
+
 import numpy as np
 import torch
 import torch.nn as nn
-from pathlib import Path
+
 from ..segbase import SegBaseModel, initialize_weights
-from .dcc_net_decoder import FeatureTransverseDecoder, BasicBlock
+from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 
 logger = logging.getLogger("pytorch_lightning")
 
@@ -114,7 +116,7 @@ def get_ftnet(
 
 
 if __name__ == "__main__":
-    from utils import print_network
+    from helper import print_network
     from lightning.pytorch.utilities import measure_flops
 
     img = torch.randint(3, 5, (2, 3, 512, 512)).float()

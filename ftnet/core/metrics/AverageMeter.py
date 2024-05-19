@@ -15,7 +15,6 @@ from typing import Any, Callable, Optional, Union
 
 import torch
 from torch import Tensor
-
 from torchmetrics.metric import Metric
 
 

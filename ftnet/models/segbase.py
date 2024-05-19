@@ -7,10 +7,12 @@ https://github.com/Tramac/awesome-semantic-segmentation-pytorch
 import logging
 import sys
 from collections import OrderedDict
-import torch
-from models import encoder as enc
-import torch.nn as nn
+
 import numpy as np
+import torch
+import torch.nn as nn
+
+from models import encoder as enc
 
 logger = logging.getLogger("pytorch_lightning")
 

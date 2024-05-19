@@ -6,9 +6,7 @@ import os
 
 # cur_path = os.path.abspath(os.path.dirname("__file__"))
 # root_path = os.path.split(cur_path)[0]
-
 # sys.path.append(root_path)
-
 import lib.data.dataloader.qtransforms as qtrans
 from lib.data.dataloader import get_classification_dataset
 from lib.data.dataloader.prefetch_generator.dataloader_v2 import (

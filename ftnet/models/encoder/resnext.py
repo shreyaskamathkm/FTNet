@@ -5,9 +5,10 @@ https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 """
 
 import os
+from pathlib import Path
+
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
-from pathlib import Path
 
 root_pretrained_path = Path.cwd() / "pretrained_models"
 root_pretrained_path.mkdir(parents=True, exist_ok=True)
@@ -151,7 +152,7 @@ class ResNext(nn.Module):
                 norm_layer(planes * block.expansion),
             )
 
-        layers = list()
+        layers = []
         if dilation in (1, 2):
             layers.append(
                 block(

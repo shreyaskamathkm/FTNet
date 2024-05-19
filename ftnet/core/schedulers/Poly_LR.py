@@ -23,7 +23,7 @@ class Poly(_LRScheduler):
     def get_lr(self):
         T = self.last_epoch * self.steps_per_epoch + self.cur_iter
         factor = pow((1 - 1.0 * T / self.N), self.power)
-        if self.warmup_iters > 0 and T < self.warmup_iters:
+        if self.warmup_iters > 0 and self.warmup_iters > T:
             factor = 1.0 * T / self.warmup_iters
 
         self.cur_iter %= self.steps_per_epoch

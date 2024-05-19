@@ -1,8 +1,9 @@
-from pydantic import BaseModel
-from typing import List
 from pathlib import Path
-import toml
 from types import SimpleNamespace
+from typing import List
+
+import toml
+from pydantic import BaseModel
 
 
 class TaskArgs(BaseModel):
@@ -39,8 +40,8 @@ class ModelArgs(BaseModel):
 class DataLoaderArgs(BaseModel):
     name: str = "soda"
     dataset_path: Path = Path("./Dataset/")
-    base_size: List[int] = [300]
-    crop_size: List[int] = [256]
+    base_size: List[List[int]] = [[300]]
+    crop_size: List[List[int]] = [[256]]
 
 
 class WandBArgs(BaseModel):
@@ -60,7 +61,7 @@ class OptimizerArgs(BaseModel):
 
 
 class SchedulerArgs(BaseModel):
-    scheduler_type: str = "poly_warmstartup"
+    name: str = "poly_warmstartup"
     warmup_iters: int = 0
     warmup_factor: float = 1.0 / 3
     warmup_method: str = "linear"
@@ -82,7 +83,6 @@ class ComputeArgs(BaseModel):
     seed: int = 123
     num_nodes: int = 1
     devices: int = 1
-    distributed_backend: str = "dp"
     workers: int = 16
 
 

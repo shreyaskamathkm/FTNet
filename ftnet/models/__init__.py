@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import models.segmentation_decoder as seg_dec
 from typing import Any
+
+import models.segmentation_decoder as seg_dec
 
 __all__ = ["get_segmentation_model"]
 

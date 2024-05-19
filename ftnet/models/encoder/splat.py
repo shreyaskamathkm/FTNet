@@ -5,8 +5,8 @@ https://github.com/zhanghang1989/ResNeSt
 """
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 from torch.nn import Conv2d, Module, ReLU
 from torch.nn.modules.utils import _pair
 

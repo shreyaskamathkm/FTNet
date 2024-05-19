@@ -3,11 +3,12 @@ MixSoftmaxCrossEntropyLoss adapted from
 https://github.com/Tramac/awesome-semantic-segmentation-pytorch/blob/master/core/utils/loss.py
 """
 
+import logging
 from typing import Any
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import logging
 
 logger = logging.getLogger(__name__)
 

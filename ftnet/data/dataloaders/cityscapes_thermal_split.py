@@ -5,10 +5,11 @@ https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/cityscapes.py
 
 import os
 
+import cv2
 import numpy as np
 import torch
 from PIL import Image
-import cv2
+
 from .segbase import SegmentationDataset
 
 
@@ -277,8 +278,9 @@ if __name__ == "__main__":
 
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
     from core.data.samplers import make_data_sampler, make_multiscale_batch_data_sampler
-    from datasets import *
     from torch.utils.data import DataLoader
+
+    from datasets import *
 
     data_kwargs = {"base_size": [960, 328], "crop_size": [512, 256]}
 

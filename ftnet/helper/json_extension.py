@@ -1,5 +1,7 @@
 import json
+
 from .utils import to_python_float
+
 # =============================================================================
 # https://discuss.pytorch.org/t/typeerror-tensor-is-not-json-serializable/36065/3
 # =============================================================================
@@ -52,10 +54,10 @@ def my_pprint(dic):
 
 
 if __name__ == "__main__":
-    import torch
-
     # import json  # results in non serializabe errors for torch.Tensors
     from pprint import pprint
+
+    import torch
 
     dic = {"x": torch.randn(1, 3), "rec": {"y": torch.randn(1, 3)}}
 

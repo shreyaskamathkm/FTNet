@@ -6,10 +6,11 @@
 # Please see LICENSE file for full terms.                                                                                                                           #                                                                                                                                              #                                                                                                                                                 #
 #####################################################################################################################################################################
 
+import logging
+
+import numpy as np
 import torch
 import torch.nn as nn
-import logging
-import numpy as np
 
 logger = logging.getLogger("pytorch_lightning")
 import torch.nn.functional as F

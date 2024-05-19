@@ -7,9 +7,9 @@
 #####################################################################################################################################################################
 
 import lightning as pl
-from cfg import parse_args, FTNetArgs
-from utils import collect_env_info, setup_logger, checkpoint
-from engine.setup_engine import train_model, test_model
+from cfg import FTNetArgs, parse_args
+from engine.setup_engine import test_model, train_model
+from helper import checkpoint, collect_env_info, get_rank, setup_logger
 
 
 def main() -> None:
@@ -18,7 +18,9 @@ def main() -> None:
     ckp = checkpoint(args.checkpoint.save_dir)
 
     logger = setup_logger(
-        save_dir=ckp.get_path("logs"), print_to_console=args.task.debug
+        save_dir=ckp.get_path("logs"),
+        distributed_rank=get_rank(),
+        print_to_console=args.task.debug,
     )
     if args.compute.seed:
         pl.seed_everything(args.compute.seed, workers=True)

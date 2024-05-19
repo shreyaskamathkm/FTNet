@@ -1,10 +1,10 @@
 # https://deci.ai/the-correct-way-to-measure-inference-time-of-deep-neural-networks/
-import torch
-from lightning_scripts.options import parse_args
 import numpy as np
-from core.models import get_segmentation_model
+import torch
 import torch.nn as nn
+from core.models import get_segmentation_model
 from core.utils import get_rank, setup_logger
+from lightning_scripts.options import parse_args
 
 BatchNorm2d = nn.BatchNorm2d
 

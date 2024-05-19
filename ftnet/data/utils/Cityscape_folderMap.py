@@ -1,8 +1,9 @@
-import shutil
 import argparse
-import pandas as pd
-from pathlib import Path
+import shutil
 from glob import glob
+from pathlib import Path
+
+import pandas as pd
 
 
 def copying(tiles, path_label, basepath, fileset_path):

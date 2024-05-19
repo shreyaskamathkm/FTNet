@@ -2,9 +2,9 @@
 # To distribute train, valid, test for SODA
 # =============================================================================
 
+import argparse
 import os
 import shutil
-import argparse
 
 
 def is_txt_file(filename):

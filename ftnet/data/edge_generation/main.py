@@ -1,6 +1,7 @@
+from pathlib import Path
+
 import cv2
 from seg2edge import seg2edge
-from pathlib import Path
 
 # datasets = ['cityscapes', 'soda', 'scutseg', 'mfn']
 datasets = ["soda"]

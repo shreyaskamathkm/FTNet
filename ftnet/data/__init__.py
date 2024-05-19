@@ -1,9 +1,9 @@
 from .dataloaders import (
     CityscapesCombineThermalDataset,
     CityscapesThermalsSplitDataset,
-    SODADataset,
     MFNDataset,
     SCUTSEGDataset,
+    SODADataset,
 )
 
 __all__ = ["datasets", "get_segmentation_dataset"]

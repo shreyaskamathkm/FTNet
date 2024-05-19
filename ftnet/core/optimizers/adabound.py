@@ -5,6 +5,7 @@ https://github.com/Luolc/AdaBound
 """
 
 import math
+
 import torch
 from torch.optim import Optimizer
 
@@ -42,27 +43,27 @@ class AdaBound(Optimizer):
         weight_decay=0,
         amsbound=False,
     ):
-        if not 0.0 <= lr:
+        if not lr >= 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
-        if not 0.0 <= eps:
+        if not eps >= 0.0:
             raise ValueError(f"Invalid epsilon value: {eps}")
         if not 0.0 <= betas[0] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 0: {betas[0]}")
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 1: {betas[1]}")
-        if not 0.0 <= final_lr:
+        if not final_lr >= 0.0:
             raise ValueError(f"Invalid final learning rate: {final_lr}")
         if not 0.0 <= gamma < 1.0:
             raise ValueError(f"Invalid gamma parameter: {gamma}")
-        defaults = dict(
-            lr=lr,
-            betas=betas,
-            final_lr=final_lr,
-            gamma=gamma,
-            eps=eps,
-            weight_decay=weight_decay,
-            amsbound=amsbound,
-        )
+        defaults = {
+            "lr": lr,
+            "betas": betas,
+            "final_lr": final_lr,
+            "gamma": gamma,
+            "eps": eps,
+            "weight_decay": weight_decay,
+            "amsbound": amsbound,
+        }
         super(AdaBound, self).__init__(params, defaults)
 
         self.base_lrs = list(map(lambda group: group["lr"], self.param_groups))
@@ -177,27 +178,27 @@ class AdaBoundW(Optimizer):
         weight_decay=0,
         amsbound=False,
     ):
-        if not 0.0 <= lr:
+        if not lr >= 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
-        if not 0.0 <= eps:
+        if not eps >= 0.0:
             raise ValueError(f"Invalid epsilon value: {eps}")
         if not 0.0 <= betas[0] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 0: {betas[0]}")
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 1: {betas[1]}")
-        if not 0.0 <= final_lr:
+        if not final_lr >= 0.0:
             raise ValueError(f"Invalid final learning rate: {final_lr}")
         if not 0.0 <= gamma < 1.0:
             raise ValueError(f"Invalid gamma parameter: {gamma}")
-        defaults = dict(
-            lr=lr,
-            betas=betas,
-            final_lr=final_lr,
-            gamma=gamma,
-            eps=eps,
-            weight_decay=weight_decay,
-            amsbound=amsbound,
-        )
+        defaults = {
+            "lr": lr,
+            "betas": betas,
+            "final_lr": final_lr,
+            "gamma": gamma,
+            "eps": eps,
+            "weight_decay": weight_decay,
+            "amsbound": amsbound,
+        }
         super(AdaBoundW, self).__init__(params, defaults)
 
         self.base_lrs = list(map(lambda group: group["lr"], self.param_groups))

@@ -1,12 +1,13 @@
-import shutil
 import argparse
-import pandas as pd
+import shutil
 from glob import glob
 from pathlib import Path
-from scipy.stats import wasserstein_distance
+
 import cv2
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy.stats import wasserstein_distance
 
 
 def is_image_file(filename):

@@ -1,10 +1,12 @@
+import logging
 from pathlib import Path
+
+import cv2
 import numpy as np
 import torch
 from PIL import Image
+
 from .segbase import SegmentationDataset
-import cv2
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -46,11 +48,9 @@ class SODADataset(SegmentationDataset):
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
     def __getitem__(self, index):
+        scale = None
         if isinstance(index, (list, tuple)):
             index, scale = index
-            input_size = self.crop_size[scale]
-        else:
-            input_size = None
 
         img = Image.open(self.images[index]).convert("RGB")
 
@@ -74,11 +74,11 @@ class SODADataset(SegmentationDataset):
         # synchronized transform
         if self.mode == "train":
             img, mask, edge = self._sync_transform(
-                img=img, mask=mask, edge=edge, crop_size=input_size
+                img=img, mask=mask, edge=edge, scale=scale
             )
         elif self.mode == "val":
             img, mask, edge = self._val_sync_transform(
-                img=img, mask=mask, edge=edge, crop_size=input_size
+                img=img, mask=mask, edge=edge, scale=scale
             )
         else:
             assert self.mode == "testval"
@@ -171,16 +171,18 @@ def _get_soda_pairs(folder: Path, split: str = "train"):
 
 if __name__ == "__main__":
     from pathlib import Path
+
     from core.data.samplers import make_data_sampler, make_multiscale_batch_data_sampler
-    from datasets import *
     from torch.utils.data import DataLoader
 
-    data_kwargs = {"base_size": [520], "crop_size": [480]}
+    from datasets import *
+
+    data_kwargs = {"base_size": [[520, 520]], "crop_size": [[480, 480]]}
 
     train_dataset = SODADataset(
-        root="/mnt/ACF29FC2F29F8F68/Work/Deep_Learning/Thermal_Segmentation/Dataset/",
+        root="/mnt/f/lab-work/FTNet/data/processed_dataset/",
         split="test",
-        mode="testval",
+        mode="train",
         **data_kwargs,
     )
 

@@ -2,8 +2,9 @@ from typing import Callable, Iterator
 
 import torch
 import torch.utils.data as data
-from core.data.samplers.batch_sampler import IterationBasedBatchSampler
-from core.data.samplers.multiscale_batch_samplers import (
+
+from .batch_sampler import IterationBasedBatchSampler
+from .multiscale_batch_samplers import (
     IterationBasedMultiscaleBatchSampler,
     MultiscaleBatchSampler,
 )
@@ -42,6 +43,24 @@ def make_multiscale_batch_data_sampler(
     num_iters: int = None,
     start_iter: int = 0,
 ) -> Iterator:
+    """Creates a multiscale batch data sampler based on the provided
+    parameters.
+
+    Args:
+        sampler: An iterator to sample data from.
+        batch_size: An integer representing the batch size (default is 2).
+        multiscale_step: An integer specifying the multiscale step i.e across how many steps, the sizes need to be same (default is 1).
+        scales: An integer indicating the number of scales i.e how many times of sizes are available (default is 1).
+        num_iters: An integer representing the number of iterations (default is None).
+        start_iter: An integer specifying the starting iteration (default is 0).
+
+    Returns:
+        Iterator: A multiscale batch data sampler.
+
+    Examples:
+        batch_sampler = make_multiscale_batch_data_sampler(sampler, batch_size=4, multiscale_step=2, scales=3)
+    """
+
     batch_sampler = MultiscaleBatchSampler(
         sampler=sampler,
         batch_size=batch_size,
@@ -49,7 +68,7 @@ def make_multiscale_batch_data_sampler(
         multiscale_step=multiscale_step,
         scales=scales,
     )
-    if num_iters is not None:
+    if num_iters:
         batch_sampler = IterationBasedMultiscaleBatchSampler(
             batch_sampler, num_iters, start_iter
         )

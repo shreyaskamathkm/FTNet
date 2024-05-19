@@ -37,7 +37,7 @@ class OneCycle(_LRScheduler):
         self.cur_iter += 1
 
         # Going from base_lr / 25 -> base_lr
-        if T <= self.phase1_iters:
+        if self.phase1_iters >= T:
             cos_anneling = (1 + math.cos(math.pi * T / self.phase1_iters)) / 2
             for i in range(len(self.optimizer.param_groups)):
                 self.optimizer.param_groups[i]["momentum"] = (

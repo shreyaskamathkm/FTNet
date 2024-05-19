@@ -4,12 +4,12 @@ from argparse import Namespace
 from typing import Any, List, Union
 
 import torch.optim as optim
-from torch.optim import Optimizer
-from torch.optim.lr_scheduler import _LRScheduler, StepLR, MultiStepLR, OneCycleLR
 
 # Assuming these are defined elsewhere in the codebase
 from core.optimizers.adabound import AdaBound
 from core.schedulers.lr_scheduler import WarmupMultiStepLR, WarmupPolyLR
+from torch.optim import Optimizer
+from torch.optim.lr_scheduler import MultiStepLR, OneCycleLR, StepLR, _LRScheduler
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def make_optimizer(args: Namespace, params: Union[List[dict], Any]) -> Optimizer
 
     if isinstance(params, list):
         if all("weight_decay" not in p for p in params):
-            kwargs["weight_decay"] = args.weight_decay
+            kwargs["weight_decay"] = args.optimizer.weight_decay
     else:
         kwargs["lr"] = args.optimizer.lr
 
@@ -76,21 +76,26 @@ def make_scheduler(
     args: Namespace,
     optimizer: Optimizer,
     iters_per_epoch: int = None,
-    logger: logging.Logger = None,
     last_epoch: int = -1,
 ) -> _LRScheduler:
-    scheduler_type = args.scheduler_type.lower()
+    scheduler_type = args.scheduler.name.lower()
 
     if scheduler_type == "step":
         scheduler = StepLR(
-            optimizer, step_size=args.lr_decay, gamma=args.gamma, last_epoch=last_epoch
+            optimizer,
+            step_size=args.scheduler.lr_decay,
+            gamma=args.scheduler.gamma,
+            last_epoch=last_epoch,
         )
         scheduler.__setattr__("__interval__", "epoch")
         logger.info("Loading Step scheduler")
     elif "step" in scheduler_type:
         milestones = list(map(int, scheduler_type.split("_")[1:]))
         scheduler = MultiStepLR(
-            optimizer, milestones=milestones, gamma=args.gamma, last_epoch=last_epoch
+            optimizer,
+            milestones=milestones,
+            gamma=args.scheduler.gamma,
+            last_epoch=last_epoch,
         )
         scheduler.__setattr__("__interval__", "epoch")
         logger.info("Loading Multi step scheduler")
@@ -99,22 +104,22 @@ def make_scheduler(
         scheduler = WarmupPolyLR(
             optimizer,
             power=0.9,
-            epochs=args.epochs,
+            epochs=args.trainer.epochs,
             steps_per_epoch=iters_per_epoch,
-            warmup_factor=args.warmup_factor,
-            warmup_iters=args.warmup_iters,
-            warmup_method=args.warmup_method,
+            warmup_factor=args.scheduler.warmup_factor,
+            warmup_iters=args.scheduler.warmup_iters,
+            warmup_method=args.scheduler.warmup_method,
         )
         scheduler.__setattr__("__interval__", "step")
         logger.info("Loading Warm Startup scheduler")
     elif scheduler_type == "multistep_warmstartup":
         scheduler = WarmupMultiStepLR(
             optimizer,
-            milestones=args.milestones,
+            milestones=args.scheduler.milestones,
             gamma=0.1,
-            warmup_factor=args.warmup_factor,
-            warmup_iters=args.warmup_iters,
-            warmup_method=args.warmup_method,
+            warmup_factor=args.scheduler.warmup_factor,
+            warmup_iters=args.scheduler.warmup_iters,
+            warmup_method=args.scheduler.warmup_method,
         )
         logger.info("Loading multi step Warm Startup scheduler")
         warnings.warn("This is not in compliance with pytorch lightning")
@@ -122,8 +127,8 @@ def make_scheduler(
     elif scheduler_type == "onecycle":
         scheduler = OneCycleLR(
             optimizer,
-            max_lr=args.lr,
-            epochs=args.epochs,
+            max_lr=args.optimizer.lr,
+            epochs=args.trainer.epochs,
             steps_per_epoch=iters_per_epoch,
             last_epoch=last_epoch,
         )

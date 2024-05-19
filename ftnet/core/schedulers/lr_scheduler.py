@@ -106,7 +106,7 @@ class LRScheduler:
             raise NotImplementedError
 
         # warm up lr schedule
-        if self.warmup_iters > 0 and T < self.warmup_iters:
+        if self.warmup_iters > 0 and self.warmup_iters > T:
             factor = factor * 1.0 * T / self.warmup_iters
 
         if self.mode == "step":

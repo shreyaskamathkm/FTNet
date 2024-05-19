@@ -1,25 +1,24 @@
 #!/usr/bin/env python
 import logging
-import math
 from argparse import Namespace
 from collections import OrderedDict
 from pathlib import Path
-from typing import Callable, Any, List
+from typing import Any, Callable, List
 
-from lightning.pytorch import LightningModule
 import torch
 import torch.nn as nn
-
-from core.loss import get_segmentation_loss
-from models import get_segmentation_model
-from utils.optimizer_scheduler_helper import make_optimizer, make_scheduler
-from utils.utils import save_model_summary
-from data import get_segmentation_dataset
 from core.data.samplers import (
     make_batch_data_sampler,
     make_data_sampler,
     make_multiscale_batch_data_sampler,
 )
+from core.loss import get_segmentation_loss
+from helper.optimizer_scheduler_helper import make_optimizer, make_scheduler
+from helper.utils import save_model_summary
+from lightning.pytorch import LightningModule
+from models import get_segmentation_model
+
+from data import get_segmentation_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +84,35 @@ class BaseTrainer(LightningModule):
             **data_kwargs,
         )
 
+    @property
+    def num_training_steps(self) -> int:
+        """Total training steps inferred from datamodule and devices.
+
+        Adapted from - https://github.com/Lightning-AI/pytorch-lightning/discussions/2149
+        """
+
+        if self.trainer.max_steps:
+            return self.trainer.max_steps
+
+        limit_batches = self.trainer.limit_train_batches
+        batches = len(self.train_dataloader())
+        batches = (
+            min(batches, limit_batches)
+            if isinstance(limit_batches, int)
+            else int(limit_batches * batches)
+        )
+
+        num_devices = max(1, self.trainer.num_devices, self.trainer.num_nodes)
+        if self.trainer.tpu_cores:
+            num_devices = max(num_devices, self.trainer.tpu_cores)
+
+        effective_accum = self.trainer.accumulate_grad_batches * num_devices
+        return (batches // effective_accum) * self.trainer.max_epochs
+
+    @property
+    def steps_per_epoch(self) -> int:
+        return self.num_training_steps // self.trainer.max_epochs
+
     def configure_optimizers(self):
         logger.info("Setting Up Optimizer")
 
@@ -97,38 +125,27 @@ class BaseTrainer(LightningModule):
                 }
             )
         if hasattr(self.model, "exclusive"):
-            for module in self.model.exclusive:
-                params.append(
-                    {
-                        "params": getattr(self.model, module).parameters(),
-                        "lr": self.args.optimizer.lr * 10,
-                    }
-                )
-
+            params.extend(
+                {
+                    "params": getattr(self.model, module).parameters(),
+                    "lr": self.args.optimizer.lr * 10,
+                }
+                for module in self.model.exclusive
+            )
         if not params:
             params = list(filter(lambda x: x.requires_grad, self.model.parameters()))
 
         optimizer = make_optimizer(args=self.args, params=params)
 
         logger.info("Setting Up Scheduler")
-
-        processes = (
-            self.args.gpus * self.args.num_nodes
-            if self.trainer.use_ddp
-            else self.args.num_nodes
-            if self.trainer.use_ddp2
-            else 1
+        logger.info(
+            f"Iterations per epoch computed for scheduler is {self.trainer.estimated_stepping_batches}"
         )
-        iters_per_epoch = (
-            math.ceil(len(self.train_dataset) / self.args.train_batch_size / processes)
-            // self.trainer.accumulate_grad_batches
-        )
-        logger.info(f"Iterations per epoch computed for scheduler is {iters_per_epoch}")
 
         scheduler = make_scheduler(
-            args=self.hparams.args,
+            args=self.args,
             optimizer=optimizer,
-            iters_per_epoch=iters_per_epoch,
+            iters_per_epoch=self.trainer.estimated_stepping_batches,
             last_epoch=-1,
         )
 
@@ -136,24 +153,36 @@ class BaseTrainer(LightningModule):
             {"scheduler": scheduler, "interval": scheduler.__interval__}
         ]
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> torch.utils.data.DataLoader:
+        self.distributed = max(1, self.trainer.num_devices, self.trainer.num_nodes)
+
+        self.args.trainer.train_batch_size = max(
+            1, int(self.args.trainer.train_batch_size / self.distributed)
+        )
+        self.args.trainer.val_batch_size = max(
+            1, int(self.args.trainer.val_batch_size / self.distributed)
+        )
+        self.args.compute.workers = max(
+            1, int(self.args.compute.workers / self.distributed)
+        )
+
         train_sampler = make_data_sampler(
             dataset=self.train_dataset,
             shuffle=True,
-            distributed=(self.trainer.use_ddp or self.trainer.use_ddp2),
+            distributed=self.distributed > 1,
         )
 
         train_batch_sampler = make_multiscale_batch_data_sampler(
             sampler=train_sampler,
-            batch_size=self.hparams.args.train_batch_size,
+            batch_size=self.args.trainer.train_batch_size,
             multiscale_step=1,
-            scales=len(self.hparams.args.crop_size),
+            scales=len(self.args.dataset.crop_size),
         )
 
         train_loader = torch.utils.data.DataLoader(
             dataset=self.train_dataset,
             batch_sampler=train_batch_sampler,
-            num_workers=self.hparams.args.workers,
+            num_workers=self.args.compute.workers,
             pin_memory=True,
         )
 
@@ -254,7 +283,7 @@ class BaseTrainer(LightningModule):
             pretrained_dict = {key[6:]: item for key, item in pretrained_dict.items()}
             temp_dict = OrderedDict()
             for k, v in pretrained_dict.items():
-                if k in model_dict.keys():
+                if k in model_dict:
                     if model_dict[k].shape != pretrained_dict[k].shape:
                         logger.info(
                             f"Skip loading parameter: {k}, "

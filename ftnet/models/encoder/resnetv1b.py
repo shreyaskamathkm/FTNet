@@ -4,13 +4,15 @@ https://github.com/zhanghang1989/ResNeSt
 """
 
 """ResNet variants"""
-import os
 import math
+import os
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
+
 from .splat import SplAtConv2d
-from pathlib import Path
 
 root_pretrained_path = Path.cwd() / "pretrained_models"
 root_pretrained_path.mkdir(parents=True, exist_ok=True)

@@ -2,11 +2,12 @@
 # To distribute train, valid, test for SODA
 # =============================================================================
 
-import os
-import pandas as pd
-from glob import glob
-import shutil
 import argparse
+import os
+import shutil
+from glob import glob
+
+import pandas as pd
 
 
 def is_image_file(filename):
