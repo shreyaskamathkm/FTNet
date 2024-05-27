@@ -14,6 +14,8 @@ from torchmetrics import ConfusionMatrix as pl_ConfusionMatrix
 from torchmetrics.aggregation import MeanMetric
 from torchmetrics.classification import MulticlassJaccardIndex
 
+from ftnet.helper.img_saving_helper import save_images
+
 from .base_trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
@@ -37,30 +39,23 @@ class SegmentationLightningModel(BaseTrainer):
             MulticlassJaccardIndex(
                 num_classes=num_class,
                 ignore_index=ignore_index,
+                average="none",
             ).to(self.device),
         )
         setattr(self, f"{mode}_edge_accuracy", MeanMetric().to(self.device))
+        setattr(self, f"{mode}_loss", MeanMetric().to(self.device))
 
     def training_step(self, batch, batch_idx):
         images, target, edges, _ = batch
-        output = self.model(images)
-        loss_val = self.criterion(output, (target, edges))
-
-        class_map, edge_map = output
-        class_map = class_map[0] if isinstance(class_map, (tuple, list)) else class_map
-        class_map = torch.argmax(class_map.long(), 1)
-        edge_pred = torch.mean(((edge_map > 0) == edges).float(), dim=[1, 2, 3])
-
+        loss_val, edge_pred, class_map, target, _ = self._step(images, target, edges)
         self.train_edge_accuracy.update(edge_pred)
         self.train_confmat.update(preds=class_map, target=target)
         self.train_IOU.update(preds=class_map, target=target)
+        self.train_loss.update(loss_val)
 
-        log_dict = OrderedDict({"loss": loss_val})
-        self.log("loss", loss_val)
+        return loss_val
 
-        return log_dict
-
-    def on_train_epoch_end(self, outputs):
+    def on_train_epoch_end(self):
         confusion_matrix = self.train_confmat.compute()
         iou = self.train_IOU.compute()
         accuracy = self.accuracy_(confusion_matrix)
@@ -70,17 +65,16 @@ class SegmentationLightningModel(BaseTrainer):
             "train_mAcc": torch.mean(accuracy),
             "train_avg_mIOU_Acc": (torch.mean(iou) + torch.mean(accuracy)) / 2,
             "train_edge_accuracy": self.train_edge_accuracy.compute(),
+            "train_loss": self.train_loss.compute(),
         }
-
-        log_dict["loss"] = torch.stack([output["loss"] for output in outputs]).mean()
 
         self.log_dict(log_dict, prog_bar=True)
         self.train_confmat.reset()
         self.train_IOU.reset()
         self.train_edge_accuracy.reset()
+        self.train_loss.reset()
 
-    def validation_step(self, batch, batch_idx):
-        images, target, edges, filename = batch
+    def _step(self, images, target, edges):
         output = self.model(images)
         loss_val = self.criterion(output, (target, edges))
 
@@ -89,24 +83,33 @@ class SegmentationLightningModel(BaseTrainer):
         class_map = torch.argmax(class_map.long(), 1)
         edge_pred = torch.mean(((edge_map > 0) == edges).float(), dim=[1, 2, 3])
 
+        return loss_val, edge_pred, class_map, target, edge_map
+
+    def validation_step(self, batch, _):
+        images, target, edges, filename = batch
+
+        loss_val, edge_pred, class_map, target, edge_map = self._step(images, target, edges)
         self.val_edge_accuracy.update(edge_pred)
         self.val_confmat.update(preds=class_map, target=target)
         self.val_IOU.update(preds=class_map, target=target)
+        self.val_loss.update(loss_val)
 
-        if self.hparams.args.save_images:
-            image_dict = {
-                "original": as_numpy(images),
-                "groundtruth": as_numpy(target),
-                "prediction": as_numpy(class_map),
-                "edge_map": as_numpy(edge_map),
-                "filename": filename,
-            }
-
-            self.save_edge_images(**image_dict)
+        if self.args.checkpoint.save_images:
+            save_images(
+                original=as_numpy(images),
+                groundtruth=as_numpy(target),
+                prediction=as_numpy(class_map),
+                edge_map=as_numpy(edge_map),
+                save_dir=self.ckp.get_path("segmented_images/val/"),
+                filename=filename,
+                current_epoch=self.current_epoch,
+                dataset=self.val_dataset,
+                save_images_as_subplots=self.args.checkpoint.save_images_as_subplots,
+            )
 
         return OrderedDict({"val_loss": loss_val})
 
-    def on_validation_epoch_end(self, outputs):
+    def on_validation_epoch_end(self):
         confusion_matrix = self.val_confmat.compute()
         iou = self.val_IOU.compute()
         accuracy = self.accuracy_(confusion_matrix)
@@ -116,14 +119,14 @@ class SegmentationLightningModel(BaseTrainer):
             "val_mAcc": torch.mean(accuracy),
             "val_avg_mIOU_Acc": (torch.mean(iou) + torch.mean(accuracy)) / 2,
             "val_edge_accuracy": self.val_edge_accuracy.compute(),
+            "val_loss": self.val_loss.compute(),
         }
 
-        log_dict["val_loss"] = torch.stack([output["val_loss"] for output in outputs]).mean()
         self.log_dict(log_dict)
-
         self.val_edge_accuracy.reset()
         self.val_confmat.reset()
         self.val_IOU.reset()
+        self.val_loss.reset()
 
     def test_step(self, batch, batch_idx):
         def upsample_output(output, target):

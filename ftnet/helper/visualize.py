@@ -199,7 +199,7 @@ def decode_segmap(label_mask, label_colours, n_classes):
     return rgb * 255
 
 
-def get_color_palette(npimg, dataset="idine"):
+def get_color_palette(npimg, dataset="soda"):
     """Visualize image.
 
     Parameters
