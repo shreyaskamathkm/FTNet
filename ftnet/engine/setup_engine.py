@@ -59,7 +59,7 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
 
     model = SegmentationLightningModel(args=args, ckp=ckp)
 
-    checkpoint_callbacks.append(model.add_callback(ckp=ckp, train_only=args.task.train_only))
+    checkpoint_callbacks.extend(model.add_callback(ckp=ckp, train_only=args.task.train_only))
 
     trainer = Trainer(
         default_root_dir=ckp.get_path("save_dir"),
