@@ -200,7 +200,7 @@ class SegmentationLightningModel(BaseTrainer):
         self.test_edge_accuracy.reset()
 
     @staticmethod
-    def _add_callback(ckp):
+    def add_callback(ckp):
         return [
             ModelCheckpoint(
                 dirpath=ckp.get_path("ckpt"),

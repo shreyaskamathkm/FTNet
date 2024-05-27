@@ -66,7 +66,7 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
         else thermal_edge_trainer(args=args, ckp=ckp)
     )
 
-    checkpoint_callbacks.append(model._add_callback(ckp=ckp))
+    checkpoint_callbacks.append(model.add_callback(ckp=ckp))
 
     trainer = Trainer(
         default_root_dir=ckp.get_path("save_dir"),

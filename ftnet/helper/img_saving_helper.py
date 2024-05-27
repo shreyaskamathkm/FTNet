@@ -89,15 +89,29 @@ def save_images(
     dataset: SegmentationDataset,
     save_images_as_subplots: bool = False,
 ) -> None:
+    """Save segmentation images with ground truth and predictions.
+
+    Args:
+        original (np.ndarray): The original input images.
+        groundtruth (np.ndarray): The ground truth segmentation masks.
+        prediction (np.ndarray): The predicted segmentation masks.
+        edge_map (np.ndarray): The edge maps.
+        filename (List[str]): List of filenames for the images.
+        save_dir (Path): Directory to save the images.
+        current_epoch (int): The current epoch number.
+        dataset (SegmentationDataset): The dataset instance providing mean and std for normalization.
+        save_images_as_subplots (bool, optional): Whether to save images as subplots. Defaults to False.
+    """
     base_path = save_dir / str(current_epoch)
     base_path.mkdir(parents=True, mode=0o770, exist_ok=True)
 
+    # Normalizing the original images
     original_img = np.clip(
         np.moveaxis(original, 1, 3) * dataset.std + dataset.mean, a_min=0, a_max=1
     )
 
-    if save_images_as_subplots:
-        for i in range(original_img.shape[0]):
+    for i in range(original_img.shape[0]):
+        if save_images_as_subplots:
             fig = plt.figure(figsize=(8.5, 11))
             plt.subplot(1, 4, 1)
             plt.imshow(original_img[i])
@@ -113,8 +127,7 @@ def save_images(
                 bbox_inches="tight",
             )
             plt.close()
-    else:
-        for i in range(original_img.shape[0]):
+        else:
             plt.imsave(
                 base_path / f"Pred_{Path(filename[i]).stem}.png",
                 np.array(get_color_palette(prediction[i], dataset.NAME)),
@@ -123,3 +136,4 @@ def save_images(
                 base_path / f"Edges_{Path(filename[i]).stem}.png",
                 np.array(edge_map[i][0]),
             )
+    plt.close()

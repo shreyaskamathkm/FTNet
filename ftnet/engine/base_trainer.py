@@ -3,10 +3,11 @@ import logging
 from argparse import Namespace
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Union
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from core.data.samplers import (
     make_batch_data_sampler,
     make_data_sampler,
@@ -17,6 +18,9 @@ from helper.optimizer_scheduler_helper import make_optimizer, make_scheduler
 from helper.utils import save_model_summary
 from lightning.pytorch import LightningModule
 from models import get_segmentation_model
+from torchmetrics import ConfusionMatrix as pl_ConfusionMatrix
+from torchmetrics.aggregation import MeanMetric
+from torchmetrics.classification import MulticlassJaccardIndex
 
 from data import get_segmentation_dataset
 
@@ -219,31 +223,97 @@ class BaseTrainer(LightningModule):
         )
         return test_loader
 
-    def load_metrics(self, mode, num_class, ignore_index):
-        raise NotImplementedError
+    def load_metrics(self, mode: str, num_class: int, ignore_index: int) -> None:
+        self._set_metric(
+            mode,
+            "confmat",
+            pl_ConfusionMatrix(task="multiclass", num_classes=num_class).to(self.device),
+        )
+        self._set_metric(
+            mode,
+            "IOU",
+            MulticlassJaccardIndex(
+                num_classes=num_class, ignore_index=ignore_index, average="none"
+            ).to(self.device),
+        )
+        self._set_metric(mode, "edge_accuracy", MeanMetric().to(self.device))
+        self._set_metric(mode, "loss", MeanMetric().to(self.device))
 
-    def training_step(self, batch: Any, batch_idx: int) -> Any:
-        raise NotImplementedError
+    def _set_metric(self, mode: str, metric_name: str, metric) -> None:
+        setattr(self, f"{mode}_{metric_name}", metric)
 
-    def on_train_epoch_end(self, outputs: List[Any]) -> None:
-        raise NotImplementedError
+    def _update_metrics(
+        self,
+        mode: str,
+        edge_pred: torch.Tensor,
+        class_map: torch.Tensor,
+        target: torch.Tensor,
+        loss_val: Union[torch.Tensor, None],
+    ) -> None:
+        getattr(self, f"{mode}_edge_accuracy").update(edge_pred)
+        getattr(self, f"{mode}_confmat").update(preds=class_map, target=target)
+        getattr(self, f"{mode}_IOU").update(preds=class_map, target=target)
+        if loss_val is not None:
+            getattr(self, f"{mode}_loss").update(loss_val)
 
-    def validation_step(self, batch: Any, batch_idx: int) -> Any:
-        raise NotImplementedError
+    def _log_epoch_end(self, mode: str) -> None:
+        confusion_matrix = getattr(self, f"{mode}_confmat").compute()
+        iou = getattr(self, f"{mode}_IOU").compute()
+        accuracy = self._compute_accuracy(confusion_matrix)
 
-    def on_validation_epoch_end(self, outputs: List[Any]) -> None:
-        raise NotImplementedError
+        log_dict = {
+            f"{mode}_mIOU": torch.mean(iou),
+            f"{mode}_mAcc": torch.mean(accuracy),
+            f"{mode}_avg_mIOU_Acc": (torch.mean(iou) + torch.mean(accuracy)) / 2,
+            f"{mode}_edge_accuracy": getattr(self, f"{mode}_edge_accuracy").compute(),
+            f"{mode}_loss": getattr(self, f"{mode}_loss").compute(),
+        }
 
-    def test_step(self, batch: Any, batch_idx: int) -> Any:
-        raise NotImplementedError
+        self.log_dict(log_dict, prog_bar=True)
+        self._reset_metrics(mode)
 
-    def on_test_epoch_end(self, outputs: List[Any]) -> None:
-        raise NotImplementedError
+    def _reset_metrics(self, mode: str) -> None:
+        getattr(self, f"{mode}_confmat").reset()
+        getattr(self, f"{mode}_IOU").reset()
+        getattr(self, f"{mode}_edge_accuracy").reset()
+        getattr(self, f"{mode}_loss").reset()
 
-    def accuracy_(self, confusion_matrix: torch.Tensor) -> torch.Tensor:
+    def _upsample_output(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        if output.shape != target.shape:
+            return F.interpolate(
+                output,
+                size=(target.shape[1], target.shape[2]),
+                mode="bilinear",
+                align_corners=True,
+            )
+        return output
+
+    def _compute_accuracy(self, confusion_matrix: torch.Tensor) -> torch.Tensor:
         acc = confusion_matrix.diag() / confusion_matrix.sum(1)
         acc[torch.isnan(acc)] = 0
         return acc
+
+    def training_step(self, *args: Any, **kwargs: Any) -> None:
+        raise NotImplementedError
+
+    def on_train_epoch_end(self) -> None:
+        raise NotImplementedError
+
+    def validation_step(self, *args: Any, **kwargs: Any) -> None:
+        raise NotImplementedError
+
+    def on_validation_epoch_end(
+        self,
+    ) -> None:
+        raise NotImplementedError
+
+    def test_step(self, *args: Any, **kwargs: Any) -> None:
+        raise NotImplementedError
+
+    def on_test_epoch_end(
+        self,
+    ) -> None:
+        raise NotImplementedError
 
     def load_weights_from_checkpoint(self, checkpoint: str) -> None:
         def check_mismatch(model_dict: dict, pretrained_dict: dict) -> dict:
