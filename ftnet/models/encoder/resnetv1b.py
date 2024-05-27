@@ -11,6 +11,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
+from helper.model_helpers import check_mismatch
 
 from .splat import SplAtConv2d
 
@@ -604,8 +605,6 @@ class ResNet(nn.Module):
 def resnet18(pretrained=False, **kwargs):
     model = ResNet(BasicBlock, [2, 2, 2, 2], radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = model_zoo.load_url(model_urls["resnet18"])
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -616,8 +615,6 @@ def resnet18(pretrained=False, **kwargs):
 def resnet34(pretrained=False, **kwargs):
     model = ResNet(BasicBlock, [3, 4, 6, 3], radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = model_zoo.load_url(model_urls["resnet34"])
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -626,10 +623,7 @@ def resnet34(pretrained=False, **kwargs):
 
 def resnet50(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], radix=0, **kwargs)
-    # print_network(model)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = model_zoo.load_url(model_urls["resnet50"])
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -639,8 +633,6 @@ def resnet50(pretrained=False, **kwargs):
 def resnet101(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 23, 3], radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = model_zoo.load_url(model_urls["resnet101"])
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -650,8 +642,6 @@ def resnet101(pretrained=False, **kwargs):
 def resnet152(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 8, 36, 3], radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = model_zoo.load_url(model_urls["resnet152"])
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -661,8 +651,6 @@ def resnet152(pretrained=False, **kwargs):
 def resnet50_v1s(pretrained=False, root=root_pretrained_path, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 6, 3], deep_stem=True, radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.load(os.path.join(root, "resnet50_v1s.pth"))
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -672,8 +660,6 @@ def resnet50_v1s(pretrained=False, root=root_pretrained_path, **kwargs):
 def resnet101_v1s(pretrained=False, root=root_pretrained_path, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 23, 3], deep_stem=True, radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.load(os.path.join(root, "resnet101_v1s.pth"))
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -683,8 +669,6 @@ def resnet101_v1s(pretrained=False, root=root_pretrained_path, **kwargs):
 def resnet152_v1s(pretrained=False, root=root_pretrained_path, **kwargs):
     model = ResNet(Bottleneck, [3, 8, 36, 3], deep_stem=True, radix=0, **kwargs)
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.load(os.path.join(root, "resnet152_v1s.pth"))
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
@@ -706,8 +690,6 @@ def resnest50(pretrained=False, root=root_pretrained_path, **kwargs):
         **kwargs,
     )
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.hub.load_state_dict_from_url(
             model_urls["resnest50"], progress=True, check_hash=True
         )
@@ -731,8 +713,6 @@ def resnest101(pretrained=False, root=root_pretrained_path, **kwargs):
         **kwargs,
     )
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.hub.load_state_dict_from_url(
             model_urls["resnest101"], progress=True, check_hash=True
         )
@@ -756,8 +736,6 @@ def resnest200(pretrained=False, root=root_pretrained_path, **kwargs):
         **kwargs,
     )
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.hub.load_state_dict_from_url(
             model_urls["resnest200"], progress=True, check_hash=True
         )
@@ -782,23 +760,12 @@ def resnest269(pretrained=False, root=root_pretrained_path, **kwargs):
         **kwargs,
     )
     if pretrained:
-        from models.segbase import check_mismatch
-
         pretrained_dict = torch.hub.load_state_dict_from_url(
             model_urls["resnest269"], progress=True, check_hash=True
         )
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
     return model
-
-
-def print_network(net):
-    num_params = 0
-    for param in net.parameters():
-        num_params += param.numel()
-    print(net)
-    print(f"Total number of parameters: {int(num_params)} ")
-    print(f"Total number of parameters: {int(num_params) / 1000**2:.3f} M")
 
 
 if __name__ == "__main__":
@@ -814,7 +781,6 @@ if __name__ == "__main__":
     # model = model.eval()
 
     outputs = model(img)
-    print_network(model)
     macs, params = get_model_complexity_info(
         model, (3, 224, 224), as_strings=True, print_per_layer_stat=True, verbose=True
     )

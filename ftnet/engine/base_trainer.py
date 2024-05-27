@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import logging
 from argparse import Namespace
-from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Callable, List, Union
 
@@ -14,8 +13,8 @@ from core.data.samplers import (
     make_multiscale_batch_data_sampler,
 )
 from core.loss import get_segmentation_loss
+from helper.model_helpers import save_model_summary
 from helper.optimizer_scheduler_helper import make_optimizer, make_scheduler
-from helper.utils import save_model_summary
 from lightning.pytorch import LightningModule
 from models import get_segmentation_model
 from torchmetrics import ConfusionMatrix as pl_ConfusionMatrix
@@ -23,6 +22,7 @@ from torchmetrics.aggregation import MeanMetric
 from torchmetrics.classification import MulticlassJaccardIndex
 
 from data import get_segmentation_dataset
+from ftnet.helper.model_helpers import check_mismatch
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,15 @@ class BaseTrainer(LightningModule):
         train: bool = True,
         **kwargs: Any,
     ) -> None:
+        """Initialize the BaseTrainer with arguments for configuration.
+
+        Args:
+            args (Namespace): Argument namespace containing configuration parameters.
+            ckp (Callable): Checkpoint handler.
+            train (bool): Flag to indicate if the model is in training mode. Defaults to True.
+            **kwargs (Any): Additional arguments.
+        """
+
         super().__init__(**kwargs)
         self.ckp = ckp
         self.args = args
@@ -66,6 +75,8 @@ class BaseTrainer(LightningModule):
             )
 
     def _preload_complete_data(self):
+        """Preloads the complete training and validation datasets."""
+
         data_kwargs = {
             "root": self.args.dataset.dataset_path,
             "base_size": self.args.dataset.base_size,
@@ -89,6 +100,11 @@ class BaseTrainer(LightningModule):
         )
 
     def configure_optimizers(self):
+        """Configures the optimizer and scheduler for training.
+
+        Returns:
+            Tuple[List[Optimizer], List[Dict[str, Any]]]: The optimizer and the scheduler.
+        """
         logger.info("Setting Up Optimizer")
 
         params: List[dict] = []
@@ -127,6 +143,13 @@ class BaseTrainer(LightningModule):
         return [optimizer], [{"scheduler": scheduler, "interval": scheduler.__interval__}]
 
     def train_dataloader(self) -> torch.utils.data.DataLoader:
+        """Sets up the training DataLoader with appropriate batch size and data
+        sampler.
+
+        Returns:
+            torch.utils.data.DataLoader: The training DataLoader.
+        """
+
         self.distributed = max(1, self.trainer.num_devices, self.trainer.num_nodes)
 
         self.args.trainer.train_batch_size = max(
@@ -166,6 +189,12 @@ class BaseTrainer(LightningModule):
         return train_loader
 
     def val_dataloader(self):
+        """Sets up the validation DataLoader with appropriate batch size and
+        data sampler.
+
+        Returns:
+            torch.utils.data.DataLoader: The validation DataLoader.
+        """
         val_sampler = make_data_sampler(
             dataset=self.val_dataset,
             shuffle=False,
@@ -190,6 +219,12 @@ class BaseTrainer(LightningModule):
         return val_loader
 
     def test_dataloader(self):
+        """Sets up the test DataLoader with appropriate batch size and data
+        sampler.
+
+        Returns:
+            torch.utils.data.DataLoader: The test DataLoader.
+        """
         data_kwargs = {
             "logger": self.custom_logger,
             "root": self.hparams.args.dataset_path,
@@ -224,6 +259,13 @@ class BaseTrainer(LightningModule):
         return test_loader
 
     def load_metrics(self, mode: str, num_class: int, ignore_index: int) -> None:
+        """Loads the metrics for a specific mode (train, val, or test).
+
+        Args:
+            mode (str): The mode for which to load metrics (train, val, test).
+            num_class (int): The number of classes in the dataset.
+            ignore_index (int): The index to ignore during metric computation.
+        """
         self._set_metric(
             mode,
             "confmat",
@@ -240,6 +282,13 @@ class BaseTrainer(LightningModule):
         self._set_metric(mode, "loss", MeanMetric().to(self.device))
 
     def _set_metric(self, mode: str, metric_name: str, metric) -> None:
+        """Sets a specific metric for a mode (train, val, or test).
+
+        Args:
+            mode (str): The mode for which to set the metric (train, val, test).
+            metric_name (str): The name of the metric.
+            metric: The metric object.
+        """
         setattr(self, f"{mode}_{metric_name}", metric)
 
     def _update_metrics(
@@ -250,6 +299,16 @@ class BaseTrainer(LightningModule):
         target: torch.Tensor,
         loss_val: Union[torch.Tensor, None],
     ) -> None:
+        """Updates metrics for a specific mode (train, val, or test).
+
+        Args:
+            mode (str): The mode for which to update metrics (train, val, test).
+            edge_pred (torch.Tensor): The edge predictions.
+            class_map (torch.Tensor): The class map predictions.
+            target (torch.Tensor): The ground truth targets.
+            loss_val (Union[torch.Tensor, None]): The loss value, if applicable.
+        """
+
         getattr(self, f"{mode}_edge_accuracy").update(edge_pred)
         getattr(self, f"{mode}_confmat").update(preds=class_map, target=target)
         getattr(self, f"{mode}_IOU").update(preds=class_map, target=target)
@@ -257,6 +316,12 @@ class BaseTrainer(LightningModule):
             getattr(self, f"{mode}_loss").update(loss_val)
 
     def _log_epoch_end(self, mode: str) -> None:
+        """Logs the metrics at the end of an epoch for a specific mode (train,
+        val, or test).
+
+        Args:
+            mode (str): The mode for which to log metrics (train, val, test).
+        """
         confusion_matrix = getattr(self, f"{mode}_confmat").compute()
         iou = getattr(self, f"{mode}_IOU").compute()
         accuracy = self._compute_accuracy(confusion_matrix)
@@ -273,12 +338,27 @@ class BaseTrainer(LightningModule):
         self._reset_metrics(mode)
 
     def _reset_metrics(self, mode: str) -> None:
+        """Resets the metrics for a specific mode (train, val, or test).
+
+        Args:
+            mode (str): The mode for which to reset metrics (train, val, test).
+        """
         getattr(self, f"{mode}_confmat").reset()
         getattr(self, f"{mode}_IOU").reset()
         getattr(self, f"{mode}_edge_accuracy").reset()
         getattr(self, f"{mode}_loss").reset()
 
     def _upsample_output(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """Upsamples the output tensor to match the target tensor size if
+        necessary.
+
+        Args:
+            output (torch.Tensor): The output tensor.
+            target (torch.Tensor): The target tensor.
+
+        Returns:
+            torch.Tensor: The upsampled output tensor.
+        """
         if output.shape != target.shape:
             return F.interpolate(
                 output,
@@ -289,47 +369,69 @@ class BaseTrainer(LightningModule):
         return output
 
     def _compute_accuracy(self, confusion_matrix: torch.Tensor) -> torch.Tensor:
+        """Computes the accuracy from the confusion matrix.
+
+        Args:
+            confusion_matrix (torch.Tensor): The confusion matrix.
+
+        Returns:
+            torch.Tensor: The computed accuracy.
+        """
         acc = confusion_matrix.diag() / confusion_matrix.sum(1)
         acc[torch.isnan(acc)] = 0
         return acc
 
     def training_step(self, *args: Any, **kwargs: Any) -> None:
+        """Abstract method for the training step.
+
+        Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
     def on_train_epoch_end(self) -> None:
+        """Abstract method called at the end of a training epoch.
+
+        Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
     def validation_step(self, *args: Any, **kwargs: Any) -> None:
+        """Abstract method for the validation step.
+
+        Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
-    def on_validation_epoch_end(
-        self,
-    ) -> None:
+    def on_validation_epoch_end(self) -> None:
+        """Abstract method called at the end of a validation epoch.
+
+        Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
     def test_step(self, *args: Any, **kwargs: Any) -> None:
+        """Abstract method for the test step.
+
+        Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
-    def on_test_epoch_end(
-        self,
-    ) -> None:
+    def on_test_epoch_end(self) -> None:
+        """Abstract method called at the end of a test epoch.
+
+        Must be implemented by subclasses.
+        """
         raise NotImplementedError
 
     def load_weights_from_checkpoint(self, checkpoint: str) -> None:
-        def check_mismatch(model_dict: dict, pretrained_dict: dict) -> dict:
-            pretrained_dict = {key[6:]: item for key, item in pretrained_dict.items()}
-            temp_dict = OrderedDict()
-            for k, v in pretrained_dict.items():
-                if k in model_dict:
-                    if model_dict[k].shape != pretrained_dict[k].shape:
-                        logger.info(
-                            f"Skip loading parameter: {k}, "
-                            f"required shape: {model_dict[k].shape}, "
-                            f"loaded shape: {pretrained_dict[k].shape}"
-                        )
-                        continue
-                    temp_dict[k] = v
-            return temp_dict
+        """Loads model weights from a checkpoint file.
+
+        Args:
+            checkpoint (str): Path to the checkpoint file.
+
+        Raises:
+            ValueError: If the model cannot be loaded from the specified location.
+        """
 
         if hasattr(self.model, "custom_load_state_dict"):
             self.model.custom_load_state_dict(checkpoint)

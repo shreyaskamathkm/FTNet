@@ -6,7 +6,6 @@ https://github.com/Tramac/awesome-semantic-segmentation-pytorch
 
 import logging
 import sys
-from collections import OrderedDict
 
 import numpy as np
 import torch
@@ -16,7 +15,7 @@ from models import encoder as enc
 
 logger = logging.getLogger("pytorch_lightning")
 
-__all__ = ["SegBaseModel", "initialize_weights", "print_network"]
+__all__ = ["SegBaseModel", "initialize_weights"]
 
 
 def str_to_class(classname):
@@ -75,27 +74,3 @@ def initialize_weights(module):
         module.weight.data = weight.view(1, 1, h, w).repeat(c1, c2, 1, 1)
         if module.bias is not None:
             module.bias.data.zero_()
-
-
-def check_mismatch(model, pretrained_dict) -> None:
-    model_dict = model.state_dict()
-    temp_dict = OrderedDict()
-    for k, v in pretrained_dict.items():
-        if k in model_dict:
-            if model_dict[k].shape != pretrained_dict[k].shape:
-                logger.info(
-                    f"Skip loading parameter: {k}, "
-                    f"required shape: {model_dict[k].shape}, "
-                    f"loaded shape: {pretrained_dict[k].shape}"
-                )
-                continue
-            temp_dict[k] = v
-    return temp_dict
-
-
-def print_network(net):
-    num_params = 0
-    for param in net.parameters():
-        num_params += param.numel()
-    print(net)
-    print(f"Total number of parameters: {int(num_params) / 1000**2} M")

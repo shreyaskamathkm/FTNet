@@ -115,7 +115,6 @@ def get_ftnet(
 
 
 if __name__ == "__main__":
-    from helper import print_network
     from lightning.pytorch.utilities import measure_flops
 
     img = torch.randint(3, 5, (2, 3, 512, 512)).float()
@@ -128,7 +127,6 @@ if __name__ == "__main__":
             no_of_filters=32,
             backbone="resnext101_32x8d",
         )
-        print_network(model)
         model_fwd = lambda: model(img)
         macs, params = measure_flops(model, model_fwd)
         print("{:<30}  {:<8}".format("Computational complexity: ", macs))
