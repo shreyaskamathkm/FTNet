@@ -10,10 +10,7 @@ from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import Callback, LearningRateMonitor, TQDMProgressBar
 from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
-from .thermal_edge_trainer import SegmentationLightningModel as thermal_edge_trainer
-from .thermal_edge_trainer_train_only import (
-    SegmentationLightningModel as thermal_edge_trainer_train_only,
-)
+from .thermal_edge_trainer import SegmentationLightningModel
 
 logger = logging.getLogger(__name__)
 
@@ -60,13 +57,9 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
     tensorboard_logger, wandb_logger = setup_pl_loggers(args, ckp)
     checkpoint_callbacks = setup_checkpoints_and_callbacks(args, ckp)
 
-    model = (
-        thermal_edge_trainer_train_only(args=args, ckp=ckp)
-        if args.task.train_only
-        else thermal_edge_trainer(args=args, ckp=ckp)
-    )
+    model = SegmentationLightningModel(args=args, ckp=ckp)
 
-    checkpoint_callbacks.append(model.add_callback(ckp=ckp))
+    checkpoint_callbacks.append(model.add_callback(ckp=ckp, train_only=args.task.train_only))
 
     trainer = Trainer(
         default_root_dir=ckp.get_path("save_dir"),
@@ -82,6 +75,8 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
         deterministic="warn",
         reload_dataloaders_every_n_epochs=1,
         use_distributed_sampler=False,
+        limit_train_batches=0.1,
+        limit_val_batches=0.0 if args.task.train_only else 1.0,
     )
 
     trainer.fit(model)
@@ -106,7 +101,7 @@ def test_model(args: FTNetArgs, ckp: checkpoint) -> None:
 
     logger.info(f"Loading from {t_checkpoint}")
 
-    model = thermal_edge_trainer.load_from_checkpoint(
+    model = SegmentationLightningModel.load_from_checkpoint(
         checkpoint_path=t_checkpoint, args=args, ckp=ckp, train=False
     )
 

@@ -1,13 +1,14 @@
 [task]
 mode = "train"
 train_only=true
-debug = true
+debug = false
 
 [trainer]
 loss_weight = 20
 epochs = 1
-train_batch_size = 2
-val_batch_size = 2
+train_batch_size = 1
+val_batch_size = 1
+pretrain_checkpoint = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/ftnet_models/val_mIOU=0.6403.ckpt"
 
 [model]
 no_of_filters = 128

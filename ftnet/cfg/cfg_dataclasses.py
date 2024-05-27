@@ -70,7 +70,7 @@ class SchedulerArgs(BaseModel):
 
 class CheckpointLogArgs(BaseModel):
     resume: Path = None
-    save_dir: Path = Path("./../../Results/")
+    save_dir: Path = Path("./Results/")
     test_checkpoint: str = None
     save_images: bool = False
     save_images_as_subplots: bool = False
