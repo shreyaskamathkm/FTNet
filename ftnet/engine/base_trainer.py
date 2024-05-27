@@ -47,7 +47,6 @@ class BaseTrainer(LightningModule):
         super().__init__(**kwargs)
         self.ckp = ckp
         self.args = args
-        self.seg_dir = Path(self.ckp.get_path("Segmented_images"))  # type: ignore
 
         logger.info("Setting Up Segmentation Model")
         self.model = get_segmentation_model(

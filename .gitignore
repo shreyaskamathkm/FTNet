@@ -92,3 +92,6 @@ Codes/src/debug/uuid.py
 
 *.insyncdl
 data/*
+.venv/
+
+.delvenv/

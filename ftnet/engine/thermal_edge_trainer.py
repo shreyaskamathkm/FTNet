@@ -155,53 +155,51 @@ class SegmentationLightningModel(BaseTrainer):
 
     @staticmethod
     def add_callback(
-        ckp: Callable, train_only: bool
+        ckp: Callable, 
+        train_only: bool,
+        save_weights_only: bool = True,
     ) -> Union[ModelCheckpoint, List[ModelCheckpoint]]:
         """Adds a checkpoint callback to save model checkpoints.
 
         Args:
             ckp: The checkpoint object.
-
+            train_only: Boolean flag indicating if only training checkpoints are needed.
+            save_weights_only: this is useful when the code is refactored. 
         Returns:
-            ModelCheckpoint: The configured ModelCheckpoint callback.
+            Union[ModelCheckpoint, List[ModelCheckpoint]]: The configured ModelCheckpoint callback(s).
         """
+        checkpoints = []
         path = ckp.get_path("ckpt")
+        
+        filename_template = "{epoch}"
+        checkpoints.append(ModelCheckpoint(
+                dirpath=path,
+                filename=filename_template,
+                verbose=True,
+                every_n_epochs=1,
+                save_last=True,
+                save_weights_only=False))
+        
         if train_only:
-            return ModelCheckpoint(
-                dirpath=path,
-                filename="{epoch}",
-                verbose=True,
-                every_n_epochs=1,
-                save_last=True,
-            )
+            return checkpoints
 
-        return [
-            ModelCheckpoint(
-                dirpath=path,
-                filename="{epoch}-{val_avg_mIOU_Acc:.4f}",
-                save_top_k=3,
-                verbose=True,
-                every_n_epochs=1,
-                monitor="val_avg_mIOU_Acc",
-                mode="max",
-                save_last=True,
-            ),
-            ModelCheckpoint(
-                dirpath=path,
-                filename="{epoch}-{val_mIOU:.4f}",
-                save_top_k=3,
-                verbose=True,
-                monitor="val_mIOU",
-                mode="max",
-                every_n_epochs=1,
-            ),
-            ModelCheckpoint(
-                dirpath=path,
-                filename="{epoch}-{val_mAcc:.4f}",
-                save_top_k=3,
-                verbose=True,
-                monitor="val_mAcc",
-                mode="max",
-                every_n_epochs=1,
-            ),
+        monitor_metrics = [
+            ("val_avg_mIOU_Acc", "{epoch}-{val_avg_mIOU_Acc:.4f}"),
+            ("val_mIOU", "{epoch}-{val_mIOU:.4f}"),
+            ("val_mAcc", "{epoch}-{val_mAcc:.4f}")
         ]
+        
+        for metric, filename_template in monitor_metrics:
+            checkpoints.append(ModelCheckpoint(
+                dirpath=path,
+                filename=filename_template,
+                save_top_k=3,
+                verbose=True,
+                every_n_epochs=1,
+                monitor=metric,
+                mode="max",
+                save_last=False,
+                save_weights_only=save_weights_only,
+            ))
+
+        return checkpoints
