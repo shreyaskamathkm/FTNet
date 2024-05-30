@@ -49,6 +49,10 @@ def parse_args():
                         type=str2bool,
                         default=False,
                         help='Use dilated backbone')
+
+    parser.add_argument('--pretrain-checkpoint',
+                        type=str,
+                        help="Path to pre-trained checkpoint file")
 # =============================================================================
 # Data and Dataloader
 # =============================================================================
