@@ -62,7 +62,7 @@ class BaseTrainer(LightningModule):
         )
 
         if self.args.trainer.pretrain_checkpoint:
-            self.load_weights_from_checkpoint(self.args.trainer.pretrain_checkpoint)
+            self.load_weights_from_checkpoint(self.args.trainer.pretrain_checkpoint, pretrain = True)
 
         save_model_summary(self.model, Path(self.ckp.get_path("logs")))  # type: ignore
         self._preload_complete_data()
@@ -422,7 +422,7 @@ class BaseTrainer(LightningModule):
         """
         raise NotImplementedError
 
-    def load_weights_from_checkpoint(self, checkpoint: str) -> None:
+    def load_weights_from_checkpoint(self, checkpoint: str , pretrain: bool = False) -> None:
         """Loads model weights from a checkpoint file.
 
         Args:
@@ -455,7 +455,7 @@ class BaseTrainer(LightningModule):
             model_dict = check_mismatch(model_dict, pretrained_dict)
             self.model.load_state_dict(
                 model_dict,
-                strict=bool(self.args.trainer.pretrain_checkpoint),
+                strict=pretrain,
             )
             logger.info("Pre-trained model loaded successfully")
 
