@@ -16,6 +16,8 @@ class SODADataset(SegmentationDataset):
     IGNORE_INDEX = 255
     NAME = "SODA"
     BASE_FOLDER = "SODA"
+    mean = [0.41079543, 0.41079543, 0.41079543]
+    std = [0.18772296, 0.18772296, 0.18772296]
 
     def __init__(
         self,
@@ -30,9 +32,6 @@ class SODADataset(SegmentationDataset):
         super().__init__(root, split, mode, base_size, crop_size)
         assert root.exists(), "Error: data root path is wrong!"
         self.sobel_edges = sobel_edges
-
-        self.mean = [0.41079543, 0.41079543, 0.41079543]
-        self.std = [0.18772296, 0.18772296, 0.18772296]
 
         self.images, self.mask_paths, self.edge_paths = _get_soda_pairs(root, self.split)
         assert len(self.images) == len(self.mask_paths), "Mismatch between images and masks"

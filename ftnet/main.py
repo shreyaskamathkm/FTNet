@@ -21,7 +21,7 @@ def main() -> None:
     logger = setup_logger(
         save_dir=ckp.get_path("logs"),
         distributed_rank=get_rank(),
-        print_to_console=args.task.debug,
+        print_to_console=True,
     )
     if args.compute.seed:
         pl.seed_everything(args.compute.seed, workers=True)
@@ -30,7 +30,7 @@ def main() -> None:
 
     if args.task.mode == "train":
         train_model(args, ckp)
-    elif args.task.mode == "test":
+    elif args.task.mode in ("test", "infer"):
         test_model(args, ckp)
 
 

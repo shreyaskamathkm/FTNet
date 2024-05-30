@@ -1,13 +1,13 @@
 from pathlib import Path
 from types import SimpleNamespace
-from typing import List
+from typing import List, Literal
 
 import toml
 from pydantic import BaseModel
 
 
 class TaskArgs(BaseModel):
-    mode: str = "train"
+    mode: Literal["train", "test", "infer"] = "train"
     train_only: bool = False
     debug: bool = False
 
@@ -18,7 +18,6 @@ class TrainingHyperParamsArgs(BaseModel):
     train_batch_size: int = 16
     val_batch_size: int = 4
     accumulate_grad_batches: int = 1
-    pretrain_checkpoint: Path = None
 
 
 class TestingHyperParamsArgs(BaseModel):
@@ -71,9 +70,10 @@ class SchedulerArgs(BaseModel):
 class CheckpointLogArgs(BaseModel):
     resume: Path = None
     save_dir: Path = Path("./Results/")
-    test_checkpoint: str = None
+    test_checkpoint: Path = None
     save_images: bool = False
     save_images_as_subplots: bool = False
+    pretrain_checkpoint: Path = None
 
 
 class ComputeArgs(BaseModel):

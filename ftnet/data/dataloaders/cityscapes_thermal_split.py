@@ -18,6 +18,8 @@ class CityscapesThermalsSplitDataset(SegmentationDataset):
     IGNORE_INDEX = -1
     NAME = "cityscapes"
     BASE_FOLDER = "Cityscapes/data_proc/"
+    mean = [0.15719692, 0.15214752, 0.15960556]
+    std = [0.06431248, 0.06369495, 0.06447389]
 
     def __init__(
         self,
@@ -105,8 +107,6 @@ class CityscapesThermalsSplitDataset(SegmentationDataset):
         )
         # [-1, ..., 33]
         self._mapping = np.array(range(-1, len(self._key) - 1)).astype("int32")
-        self.mean = [0.15719692, 0.15214752, 0.15960556]
-        self.std = [0.06431248, 0.06369495, 0.06447389]
 
     def _class_to_index(self, mask):
         # assert the value

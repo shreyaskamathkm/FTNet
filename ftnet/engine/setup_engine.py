@@ -1,5 +1,4 @@
 import logging
-import pathlib
 from typing import List
 
 from cfg import FTNetArgs
@@ -84,36 +83,24 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
 
 def test_model(args: FTNetArgs, ckp: checkpoint) -> None:
     """Test the model with a specific checkpoint."""
-    t_checkpoint = None
-    if args.test_checkpoint:
-        t_checkpoint = pathlib.Path(args.test_checkpoint)
-    elif args.test_monitor and pathlib.Path(args.test_monitor_path).exists():
-        best = 0.0
-        for x in pathlib.Path(args.test_monitor_path).iterdir():
-            if args.test_monitor in x.name:
-                val = float(x.name[-11:-5])
-                if val >= best:
-                    t_checkpoint = x
-                    best = val
-        logger.info(f"Final best checkpoint is {t_checkpoint}")
-    else:
+    if not args.checkpoint.test_checkpoint.exists():
         raise ValueError("Provide the checkpoint for testing")
 
-    logger.info(f"Loading from {t_checkpoint}")
+    logger.info(f"Loading from {str(args.checkpoint.test_checkpoint)}")
 
     model = SegmentationLightningModel.load_from_checkpoint(
-        checkpoint_path=t_checkpoint, args=args, ckp=ckp, train=False
+        checkpoint_path=args.checkpoint.test_checkpoint, args=args, ckp=ckp, train=False
     )
 
     trainer = Trainer(
-        devices=args.gpus,
-        num_nodes=args.num_nodes,
+        devices=args.compute.devices,
+        accelerator=args.compute.accelerator,
+        num_nodes=args.compute.num_nodes,
+        inference_mode=True,
         max_epochs=1,
-        strategy="dp",
         fast_dev_run=False,
-        progress_bar_refresh_rate=0,
         deterministic=True,
-        replace_sampler_ddp=False,
+        use_distributed_sampler=False,
     )
 
     trainer.test(model=model)

@@ -18,6 +18,8 @@ class MFNDataset(SegmentationDataset):
     IGNORE_INDEX = 255
     NAME = "MFNDataset"
     BASE_FOLDER = "MFNDataset"
+    mean = [0.3954101, 0.3954101, 0.3954101]
+    std = [0.07577764, 0.07577764, 0.07577764]
 
     def __init__(
         self,
@@ -35,9 +37,6 @@ class MFNDataset(SegmentationDataset):
 
         self.sobel_edges = sobel_edges
         assert os.path.exists(self.root), "Error: data root path is wrong!"
-
-        self.mean = [0.3954101, 0.3954101, 0.3954101]
-        self.std = [0.07577764, 0.07577764, 0.07577764]
 
         self.images, self.mask_paths, self.edge_paths = _get_mfn_pairs(
             self.root, self.split, logger
@@ -74,7 +73,7 @@ class MFNDataset(SegmentationDataset):
         else:
             edge = Image.open(self.edge_paths[index])
 
-        # synchrosized transform
+        # synchronized transform
         if self.mode == "train":
             img, mask, edge = self._sync_transform(
                 img=img, mask=mask, edge=edge, crop_size=input_size

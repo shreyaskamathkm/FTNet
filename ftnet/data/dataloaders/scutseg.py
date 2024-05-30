@@ -18,6 +18,8 @@ class SCUTSEGDataset(SegmentationDataset):
     IGNORE_INDEX = 255
     NAME = "SCUTSEG"
     BASE_FOLDER = "SCUTSEG"
+    mean = [0.41213047, 0.42389206, 0.416051]
+    std = [0.13611181, 0.13612076, 0.13611817]
 
     def __init__(
         self,
@@ -37,8 +39,6 @@ class SCUTSEGDataset(SegmentationDataset):
         assert os.path.exists(self.root), "Error: data root path is wrong!"
 
         # FOR same channel
-        self.mean = [0.41213047, 0.42389206, 0.416051]
-        self.std = [0.13611181, 0.13612076, 0.13611817]
 
         self.images, self.mask_paths, self.edge_paths = _get_scutseg_pairs(
             self.root, self.split, logger

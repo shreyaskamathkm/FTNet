@@ -61,12 +61,20 @@ class BaseTrainer(LightningModule):
             num_blocks=self.args.model.num_blocks,
         )
 
-        if self.args.trainer.pretrain_checkpoint:
-            self.load_weights_from_checkpoint(self.args.trainer.pretrain_checkpoint, pretrain = True)
-
-        save_model_summary(self.model, Path(self.ckp.get_path("logs")))  # type: ignore
-        self._preload_complete_data()
         if train:
+            save_model_summary(self.model, Path(self.ckp.get_path("logs")))  # type: ignore
+
+            self._preload_complete_data()
+
+            if self.args.checkpoint.pretrain_checkpoint.exists():
+                self.load_weights_from_checkpoint(
+                    self.args.trainer.pretrain_checkpoint, pretrain=True
+                )
+            else:
+                raise ValueError(
+                    f"Pretrained checkpoint {str(self.args.trainer.pretrain_checkpoint)} provided but does not exist"
+                )
+
             self.criterion = get_segmentation_loss(
                 self.args.model.name,
                 loss_weight=self.args.trainer.loss_weight,
@@ -224,38 +232,43 @@ class BaseTrainer(LightningModule):
         Returns:
             torch.utils.data.DataLoader: The test DataLoader.
         """
-        data_kwargs = {
-            "logger": self.custom_logger,
-            "root": self.hparams.args.dataset_path,
-            "base_size": None,
-        }
+        # data_kwargs = {
+        #     "root":
+        #     "base_size": None,
+        # }
+        if self.args.task.mode == "test":
+            self.test_dataset = get_segmentation_dataset(
+                self.args.dataset.name,
+                split="test",
+                mode="testval",
+                root=self.args.dataset.dataset_path,
+                base_size=None,
+            )
+            self.load_metrics(
+                mode="test",
+                num_class=self.test_dataset.NUM_CLASS,
+                ignore_index=self.test_dataset.IGNORE_INDEX,
+            )
 
-        self.test_dataset = get_segmentation_dataset(
-            self.hparams.args.dataset, split="test", mode="testval", **data_kwargs
-        )
+        elif self.args.task.mode == "infer":
+            self.test_dataset = get_segmentation_dataset(
+                "load_image", root=self.args.dataset.dataset_path, dataset=self.args.dataset.name
+            )
+            print("infer")
 
         test_sampler = make_data_sampler(
             dataset=self.test_dataset,
             shuffle=False,
-            distributed=(self.trainer.use_ddp or self.trainer.use_ddp2),
+            distributed=self.distributed > 1,
         )
 
-        test_batch_sampler = make_batch_data_sampler(
-            test_sampler, batch_size=self.hparams.args.test_batch_size
-        )
-        test_loader = torch.utils.data.DataLoader(
+        test_batch_sampler = make_batch_data_sampler(test_sampler, batch_size=1)
+        return torch.utils.data.DataLoader(
             dataset=self.test_dataset,
             batch_sampler=test_batch_sampler,
-            num_workers=self.hparams.args.workers,
+            num_workers=self.args.compute.workers,
             pin_memory=True,
         )
-
-        self.load_metrics(
-            mode="test",
-            num_class=self.test_dataset.NUM_CLASS,
-            ignore_index=self.test_dataset.IGNORE_INDEX,
-        )
-        return test_loader
 
     def load_metrics(self, mode: str, num_class: int, ignore_index: int) -> None:
         """Loads the metrics for a specific mode (train, val, or test).
@@ -422,7 +435,7 @@ class BaseTrainer(LightningModule):
         """
         raise NotImplementedError
 
-    def load_weights_from_checkpoint(self, checkpoint: str , pretrain: bool = False) -> None:
+    def load_weights_from_checkpoint(self, checkpoint: str, pretrain: bool = False) -> None:
         """Loads model weights from a checkpoint file.
 
         Args:

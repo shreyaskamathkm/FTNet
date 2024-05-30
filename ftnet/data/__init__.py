@@ -1,6 +1,7 @@
 from .dataloaders import (
     CityscapesCombineThermalDataset,
     CityscapesThermalsSplitDataset,
+    LoadImages,
     MFNDataset,
     SCUTSEGDataset,
     SODADataset,
@@ -15,6 +16,7 @@ datasets = {
     "soda": SODADataset,
     "mfn": MFNDataset,
     "scutseg": SCUTSEGDataset,
+    "load_image": LoadImages,
 }
 
 
