@@ -19,7 +19,7 @@ We provide scripts for the models from our paper. You can train your own model f
 
 Model weights are provided for ResNeXt50 and ResNeXt101. 
 
-For user convenience, the Thermal Cityscape pretrained model and weights for all datasets are provided [here](https://tufts.box.com/s/deghum7pn6h25jn4sbdzqcjbzdt789ga).
+For user convenience, the Thermal Cityscape pretrained model and weights for all datasets are provided [here](https://tufts.box.com/s/19pdu8w3ruerbzee5lt1wkgo5y0serum).
 
 This link also provides the semantic maps generated during testing phase. 
 
