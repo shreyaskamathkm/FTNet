@@ -1,5 +1,5 @@
 [task]
-mode = "train"
+mode = "infer"
 train_only=true
 debug = false
 
@@ -8,7 +8,6 @@ loss_weight = 20
 epochs = 1
 train_batch_size = 1
 val_batch_size = 1
-pretrain_checkpoint = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/ftnet_models/val_mIOU=0.6403.ckpt"
 
 [model]
 no_of_filters = 128
@@ -21,7 +20,8 @@ dilation = false
 
 [dataset]
 name = "soda"
-dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
+# dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
+dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/SODA/image/val'
 base_size = [[520,520]]
 crop_size = [[480,480]]
 
@@ -43,8 +43,9 @@ warmup_method = "linear"
 
 [checkpoint]
 # resume = none
+# pretrain_checkpoint = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/ftnet_models/val_mIOU=0.6403.ckpt"
 save_dir = './test/'
-# test_checkpoint = none
+test_checkpoint = '//mnt/C26EDFBB6EDFA687/lab-work/FTNet/ftnet_models/ftnet_resnext50_32x4d_filters_128_edge_3_blocks_2/rev-2/SODA Dataset/ckpt/val_mIOU=0.6079.ckpt'
 save_images = true
 save_images_as_subplots = false
 
@@ -54,4 +55,4 @@ num_nodes = 1
 accelerator = "auto"
 strategy = "auto"
 seed = 0
-workers = 2
+workers = 1

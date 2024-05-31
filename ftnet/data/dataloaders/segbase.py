@@ -52,6 +52,7 @@ class SegmentationDataset:
         mode: str,
         base_size: List[List[int]] = [[520, 520]],
         crop_size: List[List[int]] = [[480, 480]],
+        sobel_edges: bool = False,
     ) -> None:
         super().__init__()
         self.root = root
@@ -60,8 +61,16 @@ class SegmentationDataset:
         self.base_size = base_size
         self.crop_size = crop_size
 
-        edge_radius = 7
-        self.edge_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (edge_radius, edge_radius))
+        if not root.exists():
+            raise FileNotFoundError(f"Error: data root path {root} is wrong!")
+
+        self.sobel_edges = sobel_edges
+
+        if self.sobel_edges:
+            edge_radius = 7
+            self.edge_kernel = cv2.getStructuringElement(
+                cv2.MORPH_RECT, (edge_radius, edge_radius)
+            )
 
         if self.mode != "testval":
             base_sizes = [ImageSize(base[0], base[1]) for base in base_size]
@@ -173,6 +182,38 @@ class SegmentationDataset:
 
         return img, mask, edge
 
+    def post_process(self, img, mask, edge, scale):
+        if not edge:
+            id255 = np.where(mask == 255)
+            no255_gt = np.array(mask)
+            no255_gt[id255] = 0
+            edge = cv2.Canny(no255_gt, 5, 5, apertureSize=7)
+            edge = cv2.dilate(edge, self.edge_kernel)
+            edge[edge == 255] = 1
+            edge = Image.fromarray(edge)
+
+        # synchronized transform
+        if self.mode == "train":
+            img, mask, edge = self._sync_transform(img=img, mask=mask, edge=edge, scale=scale)
+        elif self.mode == "val":
+            img, mask, edge = self._val_sync_transform(img=img, mask=mask, edge=edge, scale=scale)
+        else:
+            assert self.mode == "test"
+            img, mask, edge = (
+                self._img_transform(img),
+                self._mask_transform(mask),
+                self._edge_transform(edge),
+            )
+
+        # general resize, normalize and to Tensor
+        img = self.normalize(img)
+        return img, mask, edge
+
+    def normalize(self, img: Image.Image) -> torch.Tensor:
+        img = self.im2double(np.array(img))
+        img = (img - self.mean) * np.reciprocal(self.std)
+        return self.np2Tensor(img).float()
+
     def im2double(self, im_: np.ndarray) -> np.ndarray:
         """Convert image to double precision."""
         info = np.iinfo(im_.dtype)  # Get the data type of the input image
@@ -194,7 +235,7 @@ class SegmentationDataset:
 
     def _mask_transform(self, mask: Image.Image) -> np.ndarray:
         """Transform mask to numpy array."""
-        return np.array(mask).astype("int32")
+        return torch.LongTensor(np.array(mask).astype("int32"))
 
     def _edge_transform(self, edge: Image.Image) -> np.ndarray:
         """Transform edge to numpy array."""
@@ -209,3 +250,43 @@ class SegmentationDataset:
     def pred_offset(self) -> int:
         """Prediction offset."""
         return 0
+
+    @staticmethod
+    def _get_pairs(
+        folder: Path, split: str = "train"
+    ) -> Tuple[List[Path], List[Path], List[Path]]:
+        def get_path_pairs(
+            img_folder: Path, mask_folder: Path, edge_folder: Path
+        ) -> Tuple[List[Path], List[Path], List[Path]]:
+            img_folder = img_folder / split
+            mask_folder = mask_folder / split
+            edge_folder = edge_folder / split
+            img_paths = []
+            mask_paths = []
+            edge_paths = []
+
+            for imgpath in img_folder.rglob("*.jpg"):
+                maskname = f"{imgpath.stem}.png"
+                maskpath = mask_folder / maskname
+                edgepath = edge_folder / maskname
+
+                if maskpath.is_file() and edgepath.is_file():
+                    img_paths.append(imgpath)
+                    mask_paths.append(maskpath)
+                    edge_paths.append(edgepath)
+                else:
+                    logger.warning(f"Cannot find the {imgpath}, {maskpath}, or {edgepath}")
+
+            logger.info(f"Found {len(img_paths)} images in the folder {img_folder}")
+            return img_paths, mask_paths, edge_paths
+
+        if split in {"train", "val", "test"}:
+            img_folder = folder / "image"
+            mask_folder = folder / "mask"
+            edge_folder = folder / "edges"
+            return get_path_pairs(img_folder, mask_folder, edge_folder)
+
+        raise ValueError("Split type unknown")
+
+    def __len__(self) -> int:
+        return len(self.images)

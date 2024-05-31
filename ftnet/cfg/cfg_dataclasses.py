@@ -37,7 +37,9 @@ class ModelArgs(BaseModel):
 
 
 class DataLoaderArgs(BaseModel):
-    name: str = "soda"
+    name: Literal[
+        "cityscapes_thermal_combine", "cityscapes_thermal_split", "soda", "mfn", "scutseg"
+    ] = "soda"
     dataset_path: Path = Path("./Dataset/")
     base_size: List[List[int]] = [[300]]
     crop_size: List[List[int]] = [[256]]

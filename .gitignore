@@ -97,3 +97,4 @@ data/*
 .delvenv/
 results/
 ftnet_models/
+lightning_logs/

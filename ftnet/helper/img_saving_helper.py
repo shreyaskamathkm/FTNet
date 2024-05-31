@@ -1,5 +1,6 @@
 # import seaborn as sns
 from pathlib import Path
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -78,14 +79,14 @@ from ftnet.helper.visualize import get_color_palette
 #             )
 
 
-def save_images(
+def save_all_images(
     original: np.ndarray,
     groundtruth: np.ndarray,
     prediction: np.ndarray,
     edge_map: np.ndarray,
     filename: list[str],
     save_dir: Path,
-    current_epoch: int,
+    current_epoch: Union[int, None],
     dataset: SegmentationDataset,
     save_images_as_subplots: bool = False,
 ) -> None:
@@ -102,8 +103,9 @@ def save_images(
         dataset (SegmentationDataset): The dataset instance providing mean and std for normalization.
         save_images_as_subplots (bool, optional): Whether to save images as subplots. Defaults to False.
     """
-    base_path = save_dir / str(current_epoch)
-    base_path.mkdir(parents=True, mode=0o770, exist_ok=True)
+    if current_epoch:
+        base_path = save_dir / str(current_epoch)
+        base_path.mkdir(parents=True, mode=0o770, exist_ok=True)
 
     # Normalizing the original images
     original_img = np.clip(
@@ -120,7 +122,7 @@ def save_images(
             plt.subplot(1, 4, 3)
             plt.imshow(np.array(get_color_palette(prediction[i], dataset.NAME)))
             plt.subplot(1, 4, 4)
-            plt.imshow(np.array(edge_map[i][0]))
+            plt.imshow(np.array(edge_map[i]))
             plt.axis("off")
             fig.savefig(
                 base_path / f"{Path(filename[i]).stem}.png",
@@ -134,6 +136,23 @@ def save_images(
             )
             plt.imsave(
                 base_path / f"Edges_{Path(filename[i]).stem}.png",
-                np.array(edge_map[i][0]),
+                np.array(edge_map[i]),
             )
+    plt.close()
+
+
+def save_pred(
+    save_dir: Path, filename: str, prediction: np.ndarray, edges: np.ndarray, dataset: str
+):
+    prediction_path = save_dir / "Predictions"
+    prediction_path.mkdir(parents=True, mode=0o770, exist_ok=True)
+
+    edge_path = save_dir / "Edges"
+    edge_path.mkdir(parents=True, mode=0o770, exist_ok=True)
+
+    plt.imsave(
+        prediction_path / Path(filename[0]).with_suffix(".png"),
+        get_color_palette(prediction, dataset),
+    )
+    plt.imsave(edge_path / Path(filename[0]).with_suffix(".png"), edges)
     plt.close()

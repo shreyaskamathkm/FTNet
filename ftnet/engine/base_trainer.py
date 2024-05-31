@@ -66,13 +66,12 @@ class BaseTrainer(LightningModule):
 
             self._preload_complete_data()
 
-            if self.args.checkpoint.pretrain_checkpoint.exists():
+            if (
+                self.args.checkpoint.pretrain_checkpoint
+                and self.args.checkpoint.pretrain_checkpoint.exists()
+            ):
                 self.load_weights_from_checkpoint(
                     self.args.trainer.pretrain_checkpoint, pretrain=True
-                )
-            else:
-                raise ValueError(
-                    f"Pretrained checkpoint {str(self.args.trainer.pretrain_checkpoint)} provided but does not exist"
                 )
 
             self.criterion = get_segmentation_loss(
@@ -237,10 +236,12 @@ class BaseTrainer(LightningModule):
         #     "base_size": None,
         # }
         if self.args.task.mode == "test":
+            logger.debug(" Running Inference Only")
+
             self.test_dataset = get_segmentation_dataset(
                 self.args.dataset.name,
                 split="test",
-                mode="testval",
+                mode="test",
                 root=self.args.dataset.dataset_path,
                 base_size=None,
             )
@@ -251,21 +252,13 @@ class BaseTrainer(LightningModule):
             )
 
         elif self.args.task.mode == "infer":
+            logger.debug(" Running Inference Only")
             self.test_dataset = get_segmentation_dataset(
                 "load_image", root=self.args.dataset.dataset_path, dataset=self.args.dataset.name
             )
-            print("infer")
 
-        test_sampler = make_data_sampler(
-            dataset=self.test_dataset,
-            shuffle=False,
-            distributed=self.distributed > 1,
-        )
-
-        test_batch_sampler = make_batch_data_sampler(test_sampler, batch_size=1)
         return torch.utils.data.DataLoader(
             dataset=self.test_dataset,
-            batch_sampler=test_batch_sampler,
             num_workers=self.args.compute.workers,
             pin_memory=True,
         )
@@ -320,7 +313,6 @@ class BaseTrainer(LightningModule):
             target (torch.Tensor): The ground truth targets.
             loss_val (Union[torch.Tensor, None]): The loss value, if applicable.
         """
-
         getattr(self, f"{mode}_edge_accuracy").update(edge_pred)
         getattr(self, f"{mode}_confmat").update(preds=class_map, target=target)
         getattr(self, f"{mode}_IOU").update(preds=class_map, target=target)
