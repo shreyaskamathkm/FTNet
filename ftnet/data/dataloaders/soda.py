@@ -35,7 +35,7 @@ class SODADataset(SegmentationDataset):
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
-    def __getitem__(self, index: Union[int, List, Tuple]):
+    def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
         scale = None
         if isinstance(index, (list, tuple)):
             index, scale = index

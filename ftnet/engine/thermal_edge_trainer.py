@@ -149,33 +149,9 @@ class SegmentationLightningModel(BaseTrainer):
             )
         return
 
-    # def on_test_epoch_end(self, outputs):
-    #     def accuracy_(confusion_matrix):
-    #         acc = confusion_matrix.diag() / confusion_matrix.sum(1)
-    #         acc[torch.isnan(acc)] = 0
-    #         return acc
-
-    #     confusion_matrix = self.test_confmat.compute()
-    #     iou = self.test_IOU.compute()
-    #     accuracy = accuracy_(confusion_matrix)
-
-    #     self.plot_confusion_matrix(confusion_matrix.cpu().numpy())
-
-    #     log_dict = {
-    #         "test_mIOU": torch.mean(iou),
-    #         "test_mAcc": torch.mean(accuracy),
-    #         "test_avg_mIOU_Acc": (torch.mean(iou) + torch.mean(accuracy)) / 2,
-    #         "test_edge_accuracy": self.test_edge_accuracy.compute(),
-    #     }
-
-    #     per_class_IOU = iou.cpu().numpy() * 100
-    #     save_to_json_pretty(log_dict, path=os.path.join(self.seg_dir, "Average.txt"))
-    #     np.savetxt(os.path.join(self.seg_dir, "per_class_iou.txt"), per_class_IOU)
-
-    #     self.log_dict(log_dict)
-    #     self.test_confmat.reset()
-    #     self.test_IOU.reset()
-    #     self.test_edge_accuracy.reset()
+    def on_test_epoch_end(self) -> None:
+        if self.args.task.mode == "test":
+            self._log_epoch_end("test")
 
     @staticmethod
     def add_callback(

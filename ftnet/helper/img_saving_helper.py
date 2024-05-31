@@ -103,7 +103,8 @@ def save_all_images(
         dataset (SegmentationDataset): The dataset instance providing mean and std for normalization.
         save_images_as_subplots (bool, optional): Whether to save images as subplots. Defaults to False.
     """
-    if current_epoch:
+    base_path = save_dir
+    if current_epoch is not None:
         base_path = save_dir / str(current_epoch)
         base_path.mkdir(parents=True, mode=0o770, exist_ok=True)
 
@@ -122,21 +123,21 @@ def save_all_images(
             plt.subplot(1, 4, 3)
             plt.imshow(np.array(get_color_palette(prediction[i], dataset.NAME)))
             plt.subplot(1, 4, 4)
-            plt.imshow(np.array(edge_map[i]))
+            plt.imshow(np.array(edge_map[i][0]))
             plt.axis("off")
             fig.savefig(
-                base_path / f"{Path(filename[i]).stem}.png",
+                base_path / f"{Path(filename[i]).with_suffix('.png')}",
                 bbox_inches="tight",
             )
             plt.close()
         else:
             plt.imsave(
-                base_path / f"Pred_{Path(filename[i]).stem}.png",
+                base_path / f"Pred_{Path(filename[i]).with_suffix('.png')}",
                 np.array(get_color_palette(prediction[i], dataset.NAME)),
             )
             plt.imsave(
-                base_path / f"Edges_{Path(filename[i]).stem}.png",
-                np.array(edge_map[i]),
+                base_path / f"Edges_{Path(filename[i]).with_suffix('.png')}",
+                np.array(edge_map[i][0]),
             )
     plt.close()
 

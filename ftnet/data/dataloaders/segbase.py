@@ -210,18 +210,18 @@ class SegmentationDataset:
         return img, mask, edge
 
     def normalize(self, img: Image.Image) -> torch.Tensor:
-        img = self.im2double(np.array(img))
+        img = self.im2double(np.array(img))  # type: ignore
         img = (img - self.mean) * np.reciprocal(self.std)
         return self.np2Tensor(img).float()
 
-    def im2double(self, im_: np.ndarray) -> np.ndarray:
+    def im2double(self, im_: np.ndarray) -> np.ndarray:  # type: ignore
         """Convert image to double precision."""
         info = np.iinfo(im_.dtype)  # Get the data type of the input image
         return (
             im_.astype(float) / info.max
         )  # Divide all values by the largest possible value in the datatype
 
-    def np2Tensor(self, array: np.ndarray) -> torch.Tensor:
+    def np2Tensor(self, array: np.ndarray) -> torch.Tensor:  # type: ignore
         """Convert numpy array to torch tensor."""
         if len(array.shape) == 3:
             np_transpose = np.ascontiguousarray(array.transpose((2, 0, 1)))
@@ -229,15 +229,15 @@ class SegmentationDataset:
             np_transpose = np.ascontiguousarray(array[np.newaxis, :])
         return torch.from_numpy(np_transpose).float()
 
-    def _img_transform(self, img: Image.Image) -> np.ndarray:
+    def _img_transform(self, img: Image.Image) -> np.ndarray:  # type: ignore
         """Transform image to numpy array."""
         return np.array(img)
 
-    def _mask_transform(self, mask: Image.Image) -> np.ndarray:
+    def _mask_transform(self, mask: Image.Image) -> torch.Tensor:
         """Transform mask to numpy array."""
         return torch.LongTensor(np.array(mask).astype("int32"))
 
-    def _edge_transform(self, edge: Image.Image) -> np.ndarray:
+    def _edge_transform(self, edge: Image.Image) -> np.ndarray:  # type: ignore
         """Transform edge to numpy array."""
         return np.array(edge).astype("int32")
 
@@ -265,7 +265,7 @@ class SegmentationDataset:
             mask_paths = []
             edge_paths = []
 
-            for imgpath in img_folder.rglob("*.jpg"):
+            for imgpath in img_folder.rglob("*[.jpg, png]"):
                 maskname = f"{imgpath.stem}.png"
                 maskpath = mask_folder / maskname
                 edgepath = edge_folder / maskname
@@ -290,3 +290,10 @@ class SegmentationDataset:
 
     def __len__(self) -> int:
         return len(self.images)
+
+    def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
+        """Abstract method for the test step.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError

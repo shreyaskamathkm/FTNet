@@ -42,12 +42,12 @@ class MFNDataset(SegmentationDataset):
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
-    def __getitem__(self, index: Union[int, List, Tuple]):
+    def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
         scale = None
         if isinstance(index, (list, tuple)):
             index, scale = index
 
-        img = np.asarray(Image.open(self.images[index]))[:, :, 3]
+        img = np.asarray(Image.open(self.images[index]))[:, :, 3]  # type: ignore
         img = Image.fromarray(img).convert("RGB")
 
         if self.mode == "infer":

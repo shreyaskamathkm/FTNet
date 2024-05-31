@@ -1,4 +1,5 @@
 import argparse
+import logging
 import shutil
 from glob import glob
 from pathlib import Path
@@ -7,7 +8,11 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from rich.logging import RichHandler
 from scipy.stats import wasserstein_distance
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 def is_image_file(filename):
@@ -115,8 +120,8 @@ def stratify(file_path, num_permutations=50000, split_perc=0.5, random_seed=42, 
 def copying(tiles, path_label, basepath, fileset_path):
     tiles.set_index(path_label, inplace=True)
     for img_path in tiles.index:
-        print(f"Path = {img_path}")
         dst_path = basepath / fileset_path
+        logger.info(f"Copying {img_path} to {dst_path}")
         shutil.copy(img_path, dst_path)
 
 
@@ -146,7 +151,7 @@ def distribute(input_dir, output_dir, reset):
     def process_data(df, main_dirs_image, main_dirs_mask):
         df = df[~df.Image_Name.str.contains(r"\(")]  # Remove copies
         df = df[~df.Image_Name.str.contains(r"\~")]  # Remove copies
-        for idx, (img_set, mask_set) in enumerate(zip(main_dirs_image, main_dirs_mask)):
+        for img_set, mask_set in zip(main_dirs_image, main_dirs_mask):
             copying(
                 tiles=df,
                 path_label="Image_Path",
@@ -179,19 +184,25 @@ def distribute(input_dir, output_dir, reset):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        level=logging.INFO,
+        handlers=[RichHandler()],
+    )
+
     parser = argparse.ArgumentParser(
         description="Distribute train, validation, and test sets for SODA dataset"
     )
     parser.add_argument(
         "--input-image-path",
         type=Path,
-        default="/mnt/f/lab-work/FTNet/datasets/SODA/SODA/InfraredSemanticLabel/",
+        default="/mnt/C26EDFBB6EDFA687/lab-work/FTNet/datasets/SODA/SODA/InfraredSemanticLabel/",
         help="Path to the SODA dataset images. This should lead to the directory containing JPEGImages.",
     )
     parser.add_argument(
         "--save-path",
         type=Path,
-        default="/mnt/f/lab-work/FTNet/data/processed_dataset/",
+        default="/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/",
         help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(

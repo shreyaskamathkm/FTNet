@@ -1,13 +1,13 @@
 [task]
 mode = "train"
 train_only=false
-debug = true
+debug = false
 
 [trainer]
 loss_weight = 20
-epochs = 1
-train_batch_size = 1
-val_batch_size = 1
+epochs = 100
+train_batch_size = 16
+val_batch_size = 16
 
 [model]
 no_of_filters = 128
@@ -43,10 +43,10 @@ warmup_method = "linear"
 
 [checkpoint]
 # resume = none
-# pretrain_checkpoint = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/ftnet_models/val_mIOU=0.6403.ckpt"
+# pretrain_checkpoint =
 save_dir = './results/'
-test_checkpoint = '//mnt/C26EDFBB6EDFA687/lab-work/FTNet/ftnet_models/ftnet_resnext50_32x4d_filters_128_edge_3_blocks_2/rev-2/SODA Dataset/ckpt/val_mIOU=0.6079.ckpt'
-save_images = true
+# test_checkpoint =
+save_images = false
 save_images_as_subplots = false
 
 [compute]
@@ -55,4 +55,4 @@ num_nodes = 1
 accelerator = "auto"
 strategy = "auto"
 seed = 0
-workers = 1
+workers = 4
