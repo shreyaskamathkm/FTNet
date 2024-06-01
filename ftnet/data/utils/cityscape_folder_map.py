@@ -37,7 +37,7 @@ def process_split(split: str, input_dir: Path, save_dir: Path, reset: bool) -> N
     save_dir (Path): Path to the output base directory.
     reset (bool): Flag to reset the output directory.
     """
-    split_dirs = [f"image/{split}", f"mask/{split}"]
+    split_dirs = [f"cityscape/image/{split}", f"cityscape/mask/{split}"]
 
     if reset and save_dir.exists():
         shutil.rmtree(save_dir)
@@ -77,8 +77,8 @@ def distribute(input_dir: Path, output_dir: Path, reset: bool) -> None:
     """
     splits = ["train", "val", "test"]
     for split in splits:
-        split_save_dir = output_dir / f"cityscape/{split}"
-        process_split(split, input_dir, split_save_dir, reset)
+        # split_save_dir = output_dir / f"cityscape/ {split}"
+        process_split(split, input_dir, output_dir, reset)
 
 
 if __name__ == "__main__":
