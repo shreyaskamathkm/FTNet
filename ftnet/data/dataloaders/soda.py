@@ -1,8 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Tuple, Union
-
-from PIL import Image
+from typing import List
 
 from .segbase import SegmentationDataset
 
@@ -35,30 +33,30 @@ class SODADataset(SegmentationDataset):
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
-    def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
-        scale = None
-        if isinstance(index, (list, tuple)):
-            index, scale = index
+    # def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
+    #     scale = None
+    #     if isinstance(index, (list, tuple)):
+    #         index, scale = index
 
-        # reading the images
-        img = Image.open(self.images[index]).convert("RGB")
+    #     # reading the images
+    #     img = Image.open(self.images[index]).convert("RGB")
 
-        if self.mode == "infer":
-            img = self.normalize(img)
-            return img, self.images[index].name
+    #     if self.mode == "infer":
+    #         img = self.normalize(img)
+    #         return img, self.images[index].name
 
-        # reading the mask
-        mask = Image.open(self.mask_paths[index])
+    #     # reading the mask
+    #     mask = Image.open(self.mask_paths[index])
 
-        # testing if sobel edge filter is required
-        edge = None
-        if not self.sobel_edges:
-            edge = Image.open(self.edge_paths[index])
+    #     # testing if sobel edge filter is required
+    #     edge = None
+    #     if not self.sobel_edges:
+    #         edge = Image.open(self.edge_paths[index])
 
-        # post process as required
-        img, mask, edge = self.post_process(img, mask, edge, scale)
+    #     # post process as required
+    #     img, mask, edge = self.post_process(img, mask, edge, scale)
 
-        return img, mask, edge, self.images[index].name
+    #     return img, mask, edge, self.images[index].name
 
     @property
     def class_names(self) -> List[str]:

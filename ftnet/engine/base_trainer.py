@@ -99,7 +99,7 @@ class BaseTrainer(LightningModule):
 
         self.val_dataset = get_segmentation_dataset(
             self.args.dataset.name,
-            split="test" if self.args.dataset.name == "scutseg" else "val",
+            split="test" if self.args.dataset.name != "scutseg" else "val",
             mode="val",
             sobel_edges=False,
             **data_kwargs,

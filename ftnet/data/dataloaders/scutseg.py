@@ -6,11 +6,10 @@ https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/cityscapes.py
 import logging
 import os
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List
 
 import numpy as np
 import torch
-from PIL import Image
 
 from .segbase import SegmentationDataset
 
@@ -35,13 +34,10 @@ class SCUTSEGDataset(SegmentationDataset):
     ):
         super().__init__(root, split, mode, base_size, crop_size, sobel_edges)
 
-        self.sobel_edges = sobel_edges
+        if self.mode == "test":
+            self.mode = "val"  # ScutSEG dataset does not have validation
 
-        assert os.path.exists(self.root), "Error: data root path is wrong!"
-
-        # FOR same channel
-
-        self.images, self.mask_paths, self.edge_paths = SCUTSEGDataset._get_scutseg_pairs(
+        self.images, self.mask_paths, self.edge_paths = SegmentationDataset._get_pairs(
             self.root, self.split
         )
         if len(self.images) != len(self.mask_paths):
@@ -53,31 +49,6 @@ class SCUTSEGDataset(SegmentationDataset):
 
         self.valid_classes = [0, 7, 24, 25, 26, 27, 13, 21, 28, 17]
         self.class_map = dict(zip(self.valid_classes, range(10)))
-
-    def __getitem__(self, index: Union[int, List, Tuple]):
-        scale = None
-        if isinstance(index, (list, tuple)):
-            index, scale = index
-
-        # reading the images
-        img = Image.open(self.images[index]).convert("RGB")
-
-        if self.mode == "infer":
-            img = self.normalize(img)
-            return img, self.images[index].name
-
-        # reading the mask
-        mask = Image.open(self.mask_paths[index])
-
-        # testing if sobel edge filter is required
-        edge = None
-        if not self.sobel_edges:
-            edge = Image.open(self.edge_paths[index])
-
-        # post process as required
-        img, mask, edge = self.post_process(img, mask, edge, scale)
-
-        return img, mask, edge, self.images[index].name
 
     def _encode_segmap(self, mask):
         for _validc in self.valid_classes:
@@ -105,48 +76,48 @@ class SCUTSEGDataset(SegmentationDataset):
             "pole",
         ]
 
-    @staticmethod
-    def _get_scutseg_pairs(folder, split="train"):
-        def get_path_pairs(img_folder, mask_folder, edge_folder):
-            img_folder = os.path.join(img_folder, split)
-            mask_folder = os.path.join(mask_folder, split)
-            edge_folder = os.path.join(edge_folder, split)
-            img_paths = []
-            mask_paths = []
-            edge_paths = []
-            for root, _, files in os.walk(img_folder):
-                for filename in files:
-                    if filename.endswith(".jpg"):
-                        imgpath = os.path.join(root, filename)
-                        maskname = filename.replace(".jpg", "_labelIds.png")
-                        maskpath = os.path.join(mask_folder, maskname)
-                        edgepath = os.path.join(edge_folder, maskname)
+    # @staticmethod
+    # def _get_scutseg_pairs(folder, split="train"):
+    #     def get_path_pairs(img_folder, mask_folder, edge_folder):
+    #         img_folder = os.path.join(img_folder, split)
+    #         mask_folder = os.path.join(mask_folder, split)
+    #         edge_folder = os.path.join(edge_folder, split)
+    #         img_paths = []
+    #         mask_paths = []
+    #         edge_paths = []
+    #         for root, _, files in os.walk(img_folder):
+    #             for filename in files:
+    #                 if filename.endswith(".jpg"):
+    #                     imgpath = os.path.join(root, filename)
+    #                     maskname = filename.replace(".jpg", "_labelIds.png")
+    #                     maskpath = os.path.join(mask_folder, maskname)
+    #                     edgepath = os.path.join(edge_folder, maskname)
 
-                        if (
-                            os.path.isfile(imgpath)
-                            and os.path.isfile(maskpath)
-                            and os.path.isfile(edgepath)
-                        ):
-                            img_paths.append(imgpath)
-                            mask_paths.append(maskpath)
-                            edge_paths.append(edgepath)
-                        else:
-                            logger.warning(f"Cannot find the {imgpath}, {maskpath}, or {edgepath}")
+    #                     if (
+    #                         os.path.isfile(imgpath)
+    #                         and os.path.isfile(maskpath)
+    #                         and os.path.isfile(edgepath)
+    #                     ):
+    #                         img_paths.append(imgpath)
+    #                         mask_paths.append(maskpath)
+    #                         edge_paths.append(edgepath)
+    #                     else:
+    #                         logger.warning(f"Cannot find the {imgpath}, {maskpath}, or {edgepath}")
 
-            logger.info(f"Found {len(img_paths)} images in the folder {img_folder}")
+    #         logger.info(f"Found {len(img_paths)} images in the folder {img_folder}")
 
-            return img_paths, mask_paths, edge_paths
+    #         return img_paths, mask_paths, edge_paths
 
-        if split in ("train", "val", "test"):
-            img_folder = os.path.join(folder, "image")
-            mask_folder = os.path.join(folder, "mask")
-            edge_folder = os.path.join(folder, "edges")
-            img_paths, mask_paths, edge_paths = get_path_pairs(
-                img_folder, mask_folder, edge_folder
-            )
-            return img_paths, mask_paths, edge_paths
+    #     if split in ("train", "val", "test"):
+    #         img_folder = os.path.join(folder, "image")
+    #         mask_folder = os.path.join(folder, "mask")
+    #         edge_folder = os.path.join(folder, "edges")
+    #         img_paths, mask_paths, edge_paths = get_path_pairs(
+    #             img_folder, mask_folder, edge_folder
+    #         )
+    #         return img_paths, mask_paths, edge_paths
 
-        raise ValueError("Split type unknown")
+    #     raise ValueError("Split type unknown")
 
 
 if __name__ == "__main__":

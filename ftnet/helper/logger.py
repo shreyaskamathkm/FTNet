@@ -7,7 +7,7 @@ from rich.logging import RichHandler
 
 __all__ = ["setup_logger"]
 
-MINIMUM_GLOBAL_LEVEL = logging.DEBUG
+MINIMUM_GLOBAL_LEVEL = logging.INFO
 GLOBAL_HANDLER = logging.StreamHandler(stream=sys.stdout)
 LOG_FORMAT = "[%(asctime)s] - %(levelname)s - [%(name)s.%(funcName)s:%(lineno)d] - %(message)s"
 LOG_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"

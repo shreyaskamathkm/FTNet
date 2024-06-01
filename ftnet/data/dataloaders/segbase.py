@@ -209,6 +209,35 @@ class SegmentationDataset:
         img = self.normalize(img)
         return img, mask, edge
 
+    def __getitem__(self, index: Union[int, List, Tuple]):
+        scale = None
+        if isinstance(index, (list, tuple)):
+            index, scale = index
+
+        if self.NAME == "mfn":
+            img = np.asarray(Image.open(self.images[index]))[:, :, 3]  # type: ignore
+            img = Image.fromarray(img).convert("RGB")
+        else:
+            # reading the images
+            img = Image.open(self.images[index]).convert("RGB")
+
+        if self.mode == "infer":
+            img = self.normalize(img)
+            return img, self.images[index].name
+
+        # reading the mask
+        mask = Image.open(self.mask_paths[index])
+
+        # testing if sobel edge filter is required
+        edge = None
+        if not self.sobel_edges:
+            edge = Image.open(self.edge_paths[index])
+
+        # post process as required
+        img, mask, edge = self.post_process(img, mask, edge, scale)
+
+        return img, mask, edge, self.images[index].name
+
     def normalize(self, img: Image.Image) -> torch.Tensor:
         img = self.im2double(np.array(img))  # type: ignore
         img = (img - self.mean) * np.reciprocal(self.std)
@@ -290,10 +319,3 @@ class SegmentationDataset:
 
     def __len__(self) -> int:
         return len(self.images)
-
-    def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
-        """Abstract method for the test step.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError
