@@ -196,13 +196,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input-image-path",
         type=Path,
-        default="/mnt/C26EDFBB6EDFA687/lab-work/FTNet/datasets/SODA/SODA/InfraredSemanticLabel/",
-        help="Path to the SODA dataset images. This should lead to the directory containing JPEGImages.",
+        default="data/original/SODA/InfraredSemanticLabel/",
+        help="Path to the SODA dataset images. This should lead contain the directory InfraredSemanticLabel.",
     )
     parser.add_argument(
         "--save-path",
         type=Path,
-        default="/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/",
+        default="data/processed_dataset/",
         help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(

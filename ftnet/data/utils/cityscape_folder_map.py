@@ -88,17 +88,19 @@ if __name__ == "__main__":
         handlers=[RichHandler()],
     )
 
-    parser = argparse.ArgumentParser(description="Set up Cityscape Dataset")
+    parser = argparse.ArgumentParser(
+        description="Distribute train, validation, and test sets for Cityscape Dataset"
+    )
     parser.add_argument(
         "--input-image-path",
         type=Path,
-        default=Path("/mnt/C26EDFBB6EDFA687/lab-work/FTNet/datasets/SODA/SODA/TIR_leftImg8bit/"),
+        default="data/original/SODA/TIR_leftImg8bit/",
         help="Path to the Cityscape dataset images. This path should lead to the directory containing TIR_leftImg8bit images.",
     )
     parser.add_argument(
         "--save-path",
         type=Path,
-        default=Path("/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"),
+        default="/data/processed_dataset/",
         help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(

@@ -99,20 +99,26 @@ if __name__ == "__main__":
         handlers=[RichHandler()],
     )
 
-    parser = argparse.ArgumentParser(description="Set up MFN Dataset")
+    parser = argparse.ArgumentParser(
+        description="Distribute train, validation, and test sets for MFN Dataset"
+    )
     parser.add_argument(
         "--input-image-path",
         type=str,
-        default="/home/shreyas/Downloads/ir_seg_dataset-20240531T202528Z-001/ir_seg_dataset",
-        help="Path to MFN Dataset",
+        default="data/original/ir_seg_dataset",
+        help="Path to the mfn dataset images. This path should contain the path to ir_seg_dataset",
     )
     parser.add_argument(
         "--save-path",
         type=str,
-        default="/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/",
-        help="Path to save MFN Dataset",
+        default="data/processed_dataset/",
+        help="Directory where the processed dataset will be saved.",
     )
-    parser.add_argument("--reset", type=bool, default=True, help="Reset the dataset")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Flag indicating whether to reset (remove existing) dataset directory if it already exists.",
+    )
 
     args = parser.parse_args()
     distribute(input_dir=args.input_image_path, output_dir=args.save_path, reset=args.reset)

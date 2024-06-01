@@ -96,23 +96,25 @@ if __name__ == "__main__":
         handlers=[RichHandler()],
     )
 
-    parser = argparse.ArgumentParser(description="Set up SCUTSEG Dataset")
+    parser = argparse.ArgumentParser(
+        description="Distribute train, validation, and test sets for SCUTSEG Dataset"
+    )
     parser.add_argument(
         "--input-image-path",
         type=Path,
-        default=Path("/home/shreyas/Downloads/scutseg/"),
-        help="Path to SCUTSEG Dataset",
+        default="data/original/scutseg/",
+        help="Path to the mfn dataset images. This path should contain the path to scutseg",
     )
     parser.add_argument(
         "--save-path",
         type=Path,
-        default=Path("/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset"),
-        help="Path to save processed SCUTSEG Dataset",
+        default="/data/processed_dataset",
+        help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(
         "--reset",
         action="store_true",
-        help="Flag to reset the output directory if it exists",
+        help="Flag indicating whether to reset (remove existing) dataset directory if it already exists.",
     )
 
     args = parser.parse_args()
