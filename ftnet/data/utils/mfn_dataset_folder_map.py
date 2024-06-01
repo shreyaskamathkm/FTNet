@@ -66,7 +66,7 @@ def setup_directories(destpath: Path, subdirs: List[str]) -> None:
 
 def distribute(input_dir: str, output_dir: str, reset: bool) -> None:
     basepath = Path(input_dir)
-    destpath = Path(output_dir) / "MFN"
+    destpath = Path(output_dir) / "mfn"
 
     if reset and destpath.exists():
         shutil.rmtree(destpath)

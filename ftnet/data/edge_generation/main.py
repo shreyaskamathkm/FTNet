@@ -1,13 +1,16 @@
 import argparse
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import cv2
+from rich.logging import RichHandler
 from seg2edge import seg2edge
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
+
+# Set up logging
 # path = Path("/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/")
 # labels_path = ['CITYSCAPE_5000/', 'SODA/', 'SCUTSEG/', 'MFN/']
 # radius = [2, 1, 1, 1]
@@ -16,51 +19,73 @@ logger = logging.getLogger(__name__)
 # datasets = ["MFN"]
 
 
-def main(datasets: str, path: str, labels_path: str, radius: list):
-    path = Path(path)
+def process_set(dataset, set_item, path, r):
+    save_path = path / dataset / "edges" / set_item
+    save_path.mkdir(parents=True, exist_ok=True)
+    mask_path = path / dataset / "mask" / set_item
+    for file_path in mask_path.iterdir():
+        logger.info(f"Filename: {file_path.stem}")
+        if file_path.name not in [".", ".."]:
+            mask = cv2.imread(str(file_path))
+            edge_map_bin = seg2edge(mask, int(r), label_ignore=None, edge_type="regular")
+            cv2.imwrite(str(save_path / file_path.name), edge_map_bin)
+
+
+def main(datasets: str, path: str, radius: list, num_workers: int):
     datasets = datasets.split(",")
-    labels_path = labels_path.split(",")
+    radius = radius.split(",")
 
-    for dataset, data_path, r in zip(datasets, labels_path, radius):
-        logger.info(f"Running Edge Detection on {dataset}")
-        set_list = (
-            ["train"]
-            if dataset == "cityscapes"
-            else ["train", "val", "test"]
-            if dataset == "soda"
-            else ["train", "test"]
-            if dataset == "scutseg"
-            else ["train", "val", "test"]
-        )
-        for set_item in set_list:
-            logger.info(f"Running Set {set_item}")
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        futures = []
+        for dataset, r in zip(datasets, radius):
+            logger.info(f"Running Edge Detection on {dataset}")
+            set_list = (
+                ["train"]
+                if dataset == "cityscapes"
+                else ["train", "val", "test"]
+                if dataset == "soda"
+                else ["train", "test"]
+                if dataset == "scutseg"
+                else ["train", "val", "test"]
+            )
+            for set_item in set_list:
+                logger.info(f"Running Set {set_item}")
+                futures.append(executor.submit(process_set, dataset, set_item, Path(path), r))
 
-            save_path = path / data_path / "edges" / set_item
-            save_path.mkdir(parents=True, exist_ok=True)
-            mask_path = path / data_path / "mask" / set_item
-            for file_path in mask_path.iterdir():
-                logger.info(f"Filename: {file_path.stem}")
-                if file_path.name not in [".", ".."]:
-                    mask = cv2.imread(str(file_path))
-                    edge_map_bin = seg2edge(mask, r, label_ignore=None, edge_type="regular")
-                    cv2.imwrite(str(save_path / file_path.name), edge_map_bin)
+        # Wait for all tasks to complete
+        for future in futures:
+            future.result()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        level=logging.INFO,
+        handlers=[RichHandler()],
+    )
+
     parser = argparse.ArgumentParser(description="Run edge detection on datasets")
     parser.add_argument(
-        "--datasets", type=str, required=True, help="Comma-separated list of datasets"
+        "--datasets",
+        type=str,
+        default="cityscape,soda,scutseg,mfn",
+        help="Comma-separated list of datasets, example: 'cityscape,soda,scutseg,mfn'",
     )
-    parser.add_argument("--path", type=Path, required=True, help="Path to the dataset directory")
     parser.add_argument(
-        "--labels-path", type=str, required=True, help="Comma-separated list of labels paths"
+        "--path",
+        type=Path,
+        default="/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/",
+        help="Path to the dataset directory",
     )
     parser.add_argument(
-        "--radius", type=int, nargs="+", required=True, help="List of radii for edge detection"
+        "--radius",
+        type=str,
+        default="2,1,1,1",
+        help="List of radii for edge detection example: '2,1,1,1'",
     )
-
+    parser.add_argument(
+        "--num_workers", type=int, default=12, help="Number of workers to use to generate edges"
+    )
     args = parser.parse_args()
 
-    logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
-
-    main(args.datasets, args.path, args.labels_path, args.radius)
+    main(args.datasets, args.path, args.radius, args.num_workers)

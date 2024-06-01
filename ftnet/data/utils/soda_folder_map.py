@@ -130,7 +130,7 @@ def distribute(input_dir, output_dir, reset):
     test_Name_path = input_dir / "test_infrared.txt"
     Image_path = input_dir / "JPEGImages"
 
-    base_dir = Path(output_dir) / "SODA"
+    base_dir = Path(output_dir) / "soda"
     if reset and base_dir.exists():
         shutil.rmtree(base_dir)
     if not base_dir.exists():
@@ -166,14 +166,14 @@ def distribute(input_dir, output_dir, reset):
             )
 
     # Process train set
-    train_df = pd.read_table(train_Name_path, delim_whitespace=True, names=("Image_Name", "B"))
+    train_df = pd.read_table(train_Name_path, sep=r"\s+", names=("Image_Name", "B"))
     train_df["Image_Path"] = train_df["Image_Name"].map(imageid_path_dict.get)
     train_df["Mask_Path"] = train_df["Image_Path"].str.replace(".jpg", ".png")
     train_df["Mask_Path"] = train_df["Mask_Path"].str.replace("JPEGImages", "SegmentationClassOne")
     process_data(train_df, [main_dirs_image[0]], [main_dirs_mask[0]])
 
     # Process test and validation sets
-    test_df = pd.read_table(test_Name_path, delim_whitespace=True, names=("Image_Name", "B"))
+    test_df = pd.read_table(test_Name_path, sep=r"\s+", names=("Image_Name", "B"))
     test_df["Image_Path"] = test_df["Image_Name"].map(imageid_path_dict.get)
     test_df["Mask_Path"] = test_df["Image_Path"].str.replace(".jpg", ".png")
     test_df["Mask_Path"] = test_df["Mask_Path"].str.replace("JPEGImages", "SegmentationClassOne")
