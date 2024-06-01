@@ -1,3 +1,8 @@
+"""
+Example run:   python -m ftnet.data.utils.cityscape_folder_map   --input-image-path <path to original dataset>  --save-path <path to save dataset>
+python -m ftnet.data.utils.cityscape_folder_map  --input-image-path ./data/original/SODA/TIR_leftImg8bit/ --save-path ./data/processed_dataset/
+"""
+
 import argparse
 import logging
 import shutil
@@ -94,13 +99,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input-image-path",
         type=Path,
-        default="data/original/SODA/TIR_leftImg8bit/",
+        default="./data/original/SODA/TIR_leftImg8bit/",
         help="Path to the Cityscape dataset images. This path should lead to the directory containing TIR_leftImg8bit images.",
     )
     parser.add_argument(
         "--save-path",
         type=Path,
-        default="/data/processed_dataset/",
+        default="./data/processed_dataset/",
         help="Directory where the processed dataset will be saved.",
     )
     parser.add_argument(

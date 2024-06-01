@@ -244,6 +244,7 @@ class BaseTrainer(LightningModule):
                 mode="test",
                 root=self.args.dataset.dataset_path,
                 base_size=None,
+                crop_size=None,
             )
             self.load_metrics(
                 mode="test",

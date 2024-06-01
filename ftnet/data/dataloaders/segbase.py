@@ -72,7 +72,7 @@ class SegmentationDataset:
                 cv2.MORPH_RECT, (edge_radius, edge_radius)
             )
 
-        if self.mode != "testval":
+        if self.mode != "test":
             base_sizes = [ImageSize(base[0], base[1]) for base in base_size]
             crop_sizes = [ImageSize(crop[0], crop[1]) for crop in crop_size]
             self.sizes = [

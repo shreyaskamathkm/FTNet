@@ -1,3 +1,8 @@
+"""
+Example run:   python -m ftnet.data.utils.mfn_folder_map   --input-image-path <path to original dataset>  --save-path <path to save dataset>
+python -m ftnet.data.utils.mfn_folder_map  --input-image-path ./data/original/ir_seg_dataset --save-path ./data/processed_dataset/
+"""
+
 import argparse
 import logging
 import shutil
@@ -105,7 +110,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input-image-path",
         type=str,
-        default="data/original/ir_seg_dataset",
+        default="./data/original/ir_seg_dataset",
         help="Path to the mfn dataset images. This path should contain the path to ir_seg_dataset",
     )
     parser.add_argument(

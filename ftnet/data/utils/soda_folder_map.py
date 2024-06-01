@@ -1,3 +1,8 @@
+"""
+Example run:   python -m ftnet.data.utils.soda_folder_map   --input-image-path <path to original dataset>  --save-path <path to save dataset>
+python -m ftnet.data.utils.soda_folder_map  --input-image-path ./data/original/SODA/InfraredSemanticLabel/ --save-path ./data/processed_dataset/
+"""
+
 import argparse
 import logging
 import shutil
@@ -196,7 +201,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input-image-path",
         type=Path,
-        default="data/original/SODA/InfraredSemanticLabel/",
+        default="./data/original/SODA/InfraredSemanticLabel/",
         help="Path to the SODA dataset images. This should lead contain the directory InfraredSemanticLabel.",
     )
     parser.add_argument(
