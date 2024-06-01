@@ -5,9 +5,9 @@
 # Copyright 2020 Tufts University.                                                                                                                                  #                                                                                                                #
 # Please see LICENSE file for full terms.                                                                                                                           #                                                                                                                                              #                                                                                                                                                 #
 #####################################################################################################################################################################
-
 import logging
 from pathlib import Path
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -19,7 +19,7 @@ from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["get_ftnet"]
+__all__ = ["get_ftnet", "FNet"]
 
 
 class FNet(SegBaseModel):
@@ -29,11 +29,11 @@ class FNet(SegBaseModel):
         backbone: str = "resnet50",
         pretrained_base: bool = True,
         no_of_filters: int = 32,
-        edge_extracts: list[int] = None,
+        edge_extracts: List[int] = None,
         num_blocks: int = None,
         dilated: bool = False,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(
             nclass=nclass,
             backbone=backbone,
@@ -45,7 +45,7 @@ class FNet(SegBaseModel):
         num_branches = 4
         numblocks = [num_blocks] * num_branches
         num_channels = [no_of_filters] * num_branches
-        edge_extract = [x - 1 for x in edge_extracts]
+        edge_extract = [x - 1 for x in edge_extracts] if edge_extracts else None
 
         dilations = [1, 1, 2, 4] if dilated else [1, 1, 1, 1]
 
@@ -89,7 +89,7 @@ class FNet(SegBaseModel):
             for m in self.modules():
                 initialize_weights(m)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         _, _, h, w = x.shape
         out, edge = self.decoder(self.base_forward(x, multiscale=False), h, w)
         out.append(edge)
@@ -104,7 +104,7 @@ def get_ftnet(
     root: Path = None,
     pretrained_base: bool = False,
     **kwargs,
-):
+) -> FNet:
     from data import datasets
 
     return FNet(

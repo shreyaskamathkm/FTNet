@@ -7,8 +7,8 @@
 #####################################################################################################################################################################
 
 import logging
+from typing import List, Optional, Tuple, Union
 
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -16,33 +16,41 @@ logger = logging.getLogger(__name__)
 import torch.nn.functional as F
 
 
-def conv3x3(in_planes, out_planes, stride=1):
+def conv3x3(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
     """3x3 convolution with padding."""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
 class BasicBlock(nn.Module):
-    expansion = 1
+    expansion: int = 1
 
     def __init__(
         self,
-        inplanes,
-        planes,
-        stride=1,
-        dilation=1,
-        previous_dilation=1,
-        downsample=None,
-    ):
+        inplanes: int,
+        planes: int,
+        stride: int = 1,
+        dilation: int = 1,
+        previous_dilation: int = 1,
+        downsample: nn.Module = None,
+    ) -> None:
         super().__init__()
-        self.conv1 = nn.Conv2d(inplanes, planes, 3, stride, dilation, dilation, bias=False)
+        self.conv1 = nn.Conv2d(
+            inplanes,
+            planes,
+            kernel_size=3,
+            stride=stride,
+            padding=dilation,
+            dilation=dilation,
+            bias=False,
+        )
         self.bn1 = nn.BatchNorm2d(planes, momentum=0.01)
-        self.relu = nn.ReLU(True)
+        self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(
             planes,
             planes,
-            3,
-            1,
-            previous_dilation,
+            kernel_size=3,
+            stride=1,
+            padding=previous_dilation,
             dilation=previous_dilation,
             bias=False,
         )
@@ -50,8 +58,9 @@ class BasicBlock(nn.Module):
         self.downsample = downsample
         self.stride = stride
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         identity = x
+
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -69,13 +78,13 @@ class BasicBlock(nn.Module):
 class FeatureTransverseDecoder(nn.Module):
     def __init__(
         self,
-        num_branches,
-        blocks,
-        num_blocks,
-        num_inchannels,
-        num_channels,
-        dilation,
-        edge_extract=None,
+        num_branches: int,
+        blocks: nn.Module,
+        num_blocks: List[int],
+        num_inchannels: List[int],
+        num_channels: List[int],
+        dilation: List[int],
+        edge_extract: Optional[List[int]] = None,
     ):
         super().__init__()
         self._check_branches(
@@ -88,40 +97,49 @@ class FeatureTransverseDecoder(nn.Module):
         self.edge_extract = edge_extract
 
         edge_list = []
-        for i in edge_extract:
-            edge_list.append(
-                nn.Sequential(
-                    nn.Conv2d(
-                        in_channels=self.num_inchannels[i],
-                        out_channels=1,
-                        kernel_size=3,
-                        stride=1,
-                        padding=3 // 2,
-                    ),
-                    nn.BatchNorm2d(1, momentum=0.01),
-                    nn.ReLU(inplace=True),
+        if edge_extract:
+            for i in edge_extract:
+                edge_list.append(
+                    nn.Sequential(
+                        nn.Conv2d(
+                            in_channels=self.num_inchannels[i],
+                            out_channels=1,
+                            kernel_size=3,
+                            stride=1,
+                            padding=1,
+                        ),
+                        nn.BatchNorm2d(1, momentum=0.01),
+                        nn.ReLU(inplace=True),
+                    )
+                )
+
+            self.edges = nn.ModuleList(edge_list)
+            self.final_edge = nn.Sequential(
+                nn.Conv2d(
+                    in_channels=len(edge_extract),
+                    out_channels=1,
+                    kernel_size=3,
+                    stride=1,
+                    padding=1,
                 )
             )
-
-        self.edges = nn.ModuleList(edge_list)
-
-        self.final_edge = nn.Sequential(
-            nn.Conv2d(
-                in_channels=len(edge_extract),
-                out_channels=1,
-                kernel_size=3,
-                stride=1,
-                padding=3 // 2,
-            )
-        )
+        else:
+            self.edges = None
+            self.final_edge = None
 
         self.branches = self._make_branches(num_branches, blocks, num_blocks, num_channels)
         self.fuse_layers = self._make_fuse_layers()
         self.relu = nn.ReLU(inplace=True)
 
     def _check_branches(
-        self, num_branches, blocks, num_blocks, num_inchannels, num_channels, dilation
-    ):
+        self,
+        num_branches: int,
+        blocks: nn.Module,
+        num_blocks: List[int],
+        num_inchannels: List[int],
+        num_channels: List[int],
+        dilation: List[int],
+    ) -> None:
         if num_branches != len(num_blocks):
             error_msg = f"NUM_BRANCHES({num_branches}) NOT EQUAL TO NUM_BLOCKS({len(num_blocks)})"
             logger.error(error_msg)
@@ -129,24 +147,31 @@ class FeatureTransverseDecoder(nn.Module):
 
         if num_branches != len(num_channels):
             error_msg = (
-                f"NUM_BRANCHES({num_branches})  NOT EQUAL TO NUM_CHANNELS({len(num_channels)})"
+                f"NUM_BRANCHES({num_branches}) NOT EQUAL TO NUM_CHANNELS({len(num_channels)})"
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         if num_branches != len(num_inchannels):
             error_msg = (
-                f"NUM_BRANCHES({num_branches})  NOT EQUAL TO NUM_INCHANNELS({len(num_inchannels)})"
+                f"NUM_BRANCHES({num_branches}) NOT EQUAL TO NUM_INCHANNELS({len(num_inchannels)})"
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         if num_branches != len(dilation):
-            error_msg = f"NUM_BRANCHES({num_branches})  NOT EQUAL TO Dilation({len(dilation)})"
+            error_msg = f"NUM_BRANCHES({num_branches}) NOT EQUAL TO Dilation({len(dilation)})"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-    def _make_one_branch(self, branch_index, block, num_blocks, num_channels, stride=1):
+    def _make_one_branch(
+        self,
+        branch_index: int,
+        block: nn.Module,
+        num_blocks: List[int],
+        num_channels: List[int],
+        stride: int = 1,
+    ) -> nn.Module:
         downsample = None
         if (
             stride != 1
@@ -163,8 +188,7 @@ class FeatureTransverseDecoder(nn.Module):
                 nn.BatchNorm2d(num_channels[branch_index] * block.expansion, momentum=0.01),
             )
 
-        layers = []
-        layers.append(
+        layers = [
             block(
                 inplanes=self.num_inchannels[branch_index],
                 planes=num_channels[branch_index],
@@ -173,10 +197,10 @@ class FeatureTransverseDecoder(nn.Module):
                 dilation=self.dilation[branch_index],
                 previous_dilation=self.dilation[branch_index],
             )
-        )
+        ]
 
         self.num_inchannels[branch_index] = num_channels[branch_index] * block.expansion
-        for i in range(1, num_blocks[branch_index]):
+        for _ in range(1, num_blocks[branch_index]):
             layers.append(
                 block(
                     inplanes=self.num_inchannels[branch_index],
@@ -188,36 +212,36 @@ class FeatureTransverseDecoder(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _make_branches(self, num_branches, block, num_blocks, num_channels):
-        branches = []
-
-        for i in range(num_branches):
-            branches.append(self._make_one_branch(i, block, num_blocks, num_channels))
-
-        return nn.ModuleList(branches)
+    def _make_branches(
+        self, num_branches: int, block: nn.Module, num_blocks: List[int], num_channels: List[int]
+    ) -> nn.ModuleList:
+        return nn.ModuleList(
+            [
+                self._make_one_branch(i, block, num_blocks, num_channels)
+                for i in range(num_branches)
+            ]
+        )
 
     def _make_fuse_layers(self):
         if self.num_branches == 1:
             return None
 
-        num_branches = self.num_branches
-        num_inchannels = self.num_inchannels
         fuse_layers = []
-        for i in range(num_branches):
+        for i in range(self.num_branches):
             fuse_layer = []
-            for j in range(num_branches):
+            for j in range(self.num_branches):
                 if j > i:
                     fuse_layer.append(
                         nn.Sequential(
                             nn.Conv2d(
-                                num_inchannels[j],
-                                num_inchannels[i],
+                                self.num_inchannels[j],
+                                self.num_inchannels[i],
                                 1,
                                 1,
                                 0,
                                 bias=False,
                             ),
-                            nn.BatchNorm2d(num_inchannels[i], momentum=0.01),
+                            nn.BatchNorm2d(self.num_inchannels[i], momentum=0.01),
                         )
                     )
                 elif j == i:
@@ -225,17 +249,17 @@ class FeatureTransverseDecoder(nn.Module):
                 else:
                     conv3x3s = []
                     previous_dilated_branches = (
-                        np.array(self.dilation[-(num_branches - j - 1) :]) > 1
+                        torch.tensor(self.dilation[-(self.num_branches - j - 1) :]) > 1
                     )
                     current_dilated_branches = bool(self.dilation[i] > 1)
                     for branch_index in range(i - j):
                         if branch_index == i - j - 1:
-                            num_outchannels_conv3x3 = num_inchannels[i]
+                            num_outchannels_conv3x3 = self.num_inchannels[i]
                             if current_dilated_branches:
                                 conv3x3s.append(
                                     nn.Sequential(
                                         nn.Conv2d(
-                                            in_channels=num_inchannels[j],
+                                            in_channels=self.num_inchannels[j],
                                             out_channels=num_outchannels_conv3x3,
                                             kernel_size=3,
                                             stride=1,
@@ -250,7 +274,7 @@ class FeatureTransverseDecoder(nn.Module):
                                 conv3x3s.append(
                                     nn.Sequential(
                                         nn.Conv2d(
-                                            in_channels=num_inchannels[j],
+                                            in_channels=self.num_inchannels[j],
                                             out_channels=num_outchannels_conv3x3,
                                             kernel_size=3,
                                             stride=2,
@@ -261,19 +285,19 @@ class FeatureTransverseDecoder(nn.Module):
                                     )
                                 )
                         else:
-                            num_outchannels_conv3x3 = num_inchannels[j]
+                            num_outchannels_conv3x3 = self.num_inchannels[j]
                             if previous_dilated_branches[branch_index]:
                                 conv3x3s.append(
                                     nn.Sequential(
                                         nn.Conv2d(
-                                            in_channels=num_inchannels[j],
+                                            in_channels=self.num_inchannels[j],
                                             out_channels=num_outchannels_conv3x3,
                                             kernel_size=3,
                                             stride=1,
-                                            padding=self.dilation[-(num_branches - j - 1) :][
+                                            padding=self.dilation[-(self.num_branches - j - 1) :][
                                                 branch_index
                                             ],
-                                            dilation=self.dilation[-(num_branches - j - 1) :][
+                                            dilation=self.dilation[-(self.num_branches - j - 1) :][
                                                 branch_index
                                             ],
                                             bias=False,
@@ -287,7 +311,7 @@ class FeatureTransverseDecoder(nn.Module):
                                 conv3x3s.append(
                                     nn.Sequential(
                                         nn.Conv2d(
-                                            in_channels=num_inchannels[j],
+                                            in_channels=self.num_inchannels[j],
                                             out_channels=num_outchannels_conv3x3,
                                             kernel_size=3,
                                             stride=2,
@@ -307,14 +331,16 @@ class FeatureTransverseDecoder(nn.Module):
     def get_num_inchannels(self):
         return self.num_inchannels
 
-    def forward(self, x, h, w):
+    def forward(
+        self, x: List[torch.Tensor], h: int, w: int
+    ) -> Union[List[torch.Tensor], Tuple[List[torch.Tensor], torch.Tensor]]:
         if self.num_branches == 1:
             return [self.branches[0](x[0])]
 
         edge_feats = []
         j = 0
         for i in range(self.num_branches):
-            if i in self.edge_extract:
+            if self.edge_extract and i in self.edge_extract:
                 temp = self.edges[j](x[i])
                 edge_feats.append(
                     F.interpolate(temp, size=(h, w), mode="bilinear", align_corners=True)
@@ -326,8 +352,8 @@ class FeatureTransverseDecoder(nn.Module):
         edge = self.final_edge(torch.cat(edge_feats, 1))
 
         x_fuse = []
-        for i in range(len(self.fuse_layers)):
-            y = x[0] if i == 0 else self.fuse_layers[i][0](x[0])
+        for i, fuse_layer in enumerate(self.fuse_layers):
+            y = x[0] if i == 0 else fuse_layer[0](x[0])
             for j in range(1, self.num_branches):
                 if i == j:
                     y = y + x[j]
@@ -335,13 +361,13 @@ class FeatureTransverseDecoder(nn.Module):
                     width_output = x[i].shape[-1]
                     height_output = x[i].shape[-2]
                     y = y + F.interpolate(
-                        self.fuse_layers[i][j](x[j]),
+                        fuse_layer[j](x[j]),
                         size=[height_output, width_output],
                         mode="bilinear",
                         align_corners=True,
                     )
                 else:
-                    y = y + self.fuse_layers[i][j](x[j])
+                    y = y + fuse_layer[j](x[j])
 
             x_fuse.append(
                 F.interpolate(self.relu(y), size=(h, w), mode="bilinear", align_corners=True)
