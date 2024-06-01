@@ -4,7 +4,7 @@ import errno
 import os
 from pathlib import Path
 
-__all__ = ["checkpoint", "makedirs"]
+__all__ = ["checkpoint"]
 
 
 class checkpoint:

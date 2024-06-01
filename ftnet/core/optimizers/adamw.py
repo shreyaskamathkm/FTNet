@@ -5,42 +5,41 @@ https://github.com/pytorch/pytorch/blob/master/torch/optim/adamw.py
 """
 
 import math
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 import torch
-from torch.optim.optimizer import Optimizer
+from torch import Tensor
+from torch.optim import Optimizer
 
 __all__ = ["AdamW"]
 
 
 class AdamW(Optimizer):
-    """Implements Adam algorithm.
+    """Implements Adam algorithm with weight decay fix.
 
     Arguments:
-        params (iterable): iterable of parameters to optimize or dicts defining
-            parameter groups
+        params (iterable): iterable of parameters to optimize or dicts defining parameter groups
         lr (float, optional): learning rate (default: 1e-3)
-        betas (Tuple[float, float], optional): coefficients used for computing
-            running averages of gradient and its square (default: (0.9, 0.999))
-        eps (float, optional): term added to the denominator to improve
-            numerical stability (default: 1e-8)
+        betas (Tuple[float, float], optional): coefficients used for computing running averages of gradient and its square (default: (0.9, 0.999))
+        eps (float, optional): term added to the denominator to improve numerical stability (default: 1e-8)
         weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
-        amsgrad (boolean, optional): whether to use the AMSGrad variant of this
-            algorithm from the paper `On the Convergence of Adam and Beyond`_
+        amsgrad (bool, optional): whether to use the AMSGrad variant of this algorithm from the paper `On the Convergence of Adam and Beyond`_
     """
 
     def __init__(
         self,
-        params,
-        lr=1e-3,
-        betas=(0.9, 0.999),
-        eps=1e-8,
-        weight_decay=0,
-        amsgrad=False,
-    ):
+        params: Union[Iterable[Tensor], Iterable[Dict[str, Any]]],
+        lr: float = 1e-3,
+        betas: Tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 0.0,
+        amsgrad: bool = False,
+    ) -> None:
         if not 0.0 <= betas[0] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 0: {betas[0]}")
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError(f"Invalid beta parameter at index 1: {betas[1]}")
+
         defaults = {
             "lr": lr,
             "betas": betas,
@@ -48,19 +47,15 @@ class AdamW(Optimizer):
             "weight_decay": weight_decay,
             "amsgrad": amsgrad,
         }
-        # super(AdamW, self).__init__(params, defaults)
         super().__init__(params, defaults)
 
-    def step(self, closure=None):
+    def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
         """Performs a single optimization step.
 
         Arguments:
-            closure (callable, optional): A closure that reevaluates the model
-                and returns the loss.
+            closure (callable, optional): A closure that reevaluates the model and returns the loss.
         """
-        loss = None
-        if closure is not None:
-            loss = closure()
+        loss = closure() if closure is not None else None
 
         for group in self.param_groups:
             for p in group["params"]:
@@ -69,10 +64,10 @@ class AdamW(Optimizer):
                 grad = p.grad.data
                 if grad.is_sparse:
                     raise RuntimeError(
-                        "Adam does not support sparse gradients, please consider SparseAdam instead"
+                        "AdamW does not support sparse gradients, please consider SparseAdam instead"
                     )
-                amsgrad = group["amsgrad"]
 
+                amsgrad = group["amsgrad"]
                 state = self.state[p]
 
                 # State initialization

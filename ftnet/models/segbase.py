@@ -6,36 +6,64 @@ https://github.com/Tramac/awesome-semantic-segmentation-pytorch
 
 import logging
 import sys
+from typing import List, Optional
 
-import numpy as np
-import torch
 import torch.nn as nn
+from torch import Tensor
 
 from models import encoder as enc
 
-logger = logging.getLogger("pytorch_lightning")
+logger = logging.getLogger(__name__)
 
-__all__ = ["SegBaseModel", "initialize_weights"]
+__all__ = ["SegBaseModel"]
 
 
-def str_to_class(classname):
+def str_to_class(classname: str) -> type:
+    """Convert a string to a class object.
+
+    Args:
+        classname (str): The name of the class.
+
+    Returns:
+        type: The class object.
+    """
     return getattr(sys.modules[__name__], classname)
 
 
 class SegBaseModel(nn.Module):
-    def __init__(self, nclass, backbone="ResNet50", pretrained_base=True, dilated=None, **kwargs):
-        super().__init__()
+    def __init__(
+        self,
+        nclass: int,
+        backbone: str = "ResNet50",
+        pretrained_base: bool = True,
+        dilated: Optional[bool] = True,
+        **kwargs,
+    ) -> None:
+        """Segmentation Base Model Initialization.
 
-        if dilated is None:
-            dilated = True
+        Args:
+            nclass (int): Number of output classes.
+            backbone (str, optional): Backbone model name. Defaults to "ResNet50".
+            pretrained_base (bool, optional): Whether to use pretrained weights for the base. Defaults to True.
+            dilated (Optional[bool], optional): Whether to use dilated convolutions. Defaults to True.
+        """
+        super().__init__()
 
         self.nclass = nclass
         model_name = backbone.lower()
-        model = enc.__dict__[model_name.lower()]
+        model = enc.__dict__[model_name]
         self.encoder = model(pretrained=pretrained_base, dilated=dilated, **kwargs)
 
-    def base_forward(self, x, multiscale=False):
-        """Forwarding pre-trained network."""
+    def base_forward(self, x: Tensor, multiscale: bool = False) -> List[Tensor]:
+        """Forwarding through the pre-trained network.
+
+        Args:
+            x (Tensor): Input tensor.
+            multiscale (bool, optional): Whether to return multiscale features. Defaults to False.
+
+        Returns:
+            List[Tensor]: List of feature maps.
+        """
         x = self.encoder.conv1(x)
         x = self.encoder.bn1(x)
         c0 = self.encoder.relu(x)
@@ -49,28 +77,3 @@ class SegBaseModel(nn.Module):
             return [c0, c1, c2, c3, c4]
 
         return [c1, c2, c3, c4]
-
-
-def get_upsample_filter(size):
-    """Make a 2D bilinear kernel suitable for upsampling."""
-    factor = (size + 1) // 2
-    center = (factor - 1) if size % 2 == 1 else (factor - 0.5)
-    og = np.ogrid[:size, :size]
-    filter = (1 - abs(og[0] - center) / factor) * (1 - abs(og[1] - center) / factor)
-    return torch.from_numpy(filter).float()
-
-
-def initialize_weights(module):
-    if isinstance(module, nn.Conv2d):
-        nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
-
-    elif isinstance(module, nn.BatchNorm2d):
-        nn.init.constant_(module.weight, 1)
-        nn.init.constant_(module.bias, 0)
-
-    elif isinstance(module, nn.ConvTranspose2d):
-        c1, c2, h, w = module.weight.data.size()
-        weight = get_upsample_filter(h)
-        module.weight.data = weight.view(1, 1, h, w).repeat(c1, c2, 1, 1)
-        if module.bias is not None:
-            module.bias.data.zero_()

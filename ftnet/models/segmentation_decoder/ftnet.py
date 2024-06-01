@@ -13,12 +13,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ..segbase import SegBaseModel, initialize_weights
+from ..model_helper import initialize_weights
+from ..segbase import SegBaseModel
 from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 
 logger = logging.getLogger("pytorch_lightning")
 
-__all__ = ["FNet", "get_ftnet"]
+__all__ = ["get_ftnet"]
 
 
 class FNet(SegBaseModel):

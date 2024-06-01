@@ -7,7 +7,7 @@ from .dataloaders import (
     SODADataset,
 )
 
-__all__ = ["datasets", "get_segmentation_dataset"]
+__all__ = ["get_segmentation_dataset"]
 
 
 datasets = {
