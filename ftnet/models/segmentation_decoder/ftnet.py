@@ -17,7 +17,7 @@ from ..model_helper import initialize_weights
 from ..segbase import SegBaseModel
 from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 
-logger = logging.getLogger("pytorch_lightning")
+logger = logging.getLogger(__name__)
 
 __all__ = ["get_ftnet"]
 

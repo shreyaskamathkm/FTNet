@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-logger = logging.getLogger("pytorch_lightning")
+logger = logging.getLogger(__name__)
 import torch.nn.functional as F
 
 
