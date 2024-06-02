@@ -8,10 +8,9 @@ import os
 from pathlib import Path
 from typing import List
 
-import numpy as np
-import torch
-
+from .file_path_handler import FilePathHandler
 from .segbase import SegmentationDataset
+from .transforms import NormalizationTransform, ScutsegTransform
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +36,10 @@ class SCUTSEGDataset(SegmentationDataset):
         if self.mode == "test":
             self.mode = "val"  # ScutSEG dataset does not have validation
 
-        self.images, self.mask_paths, self.edge_paths = SegmentationDataset._get_pairs(
+        self.images, self.mask_paths, self.edge_paths = FilePathHandler._get_pairs(
             self.root, self.split
         )
+
         if len(self.images) != len(self.mask_paths):
             raise ValueError("Mismatch between images and masks")
         if len(self.images) != len(self.edge_paths):
@@ -47,17 +47,12 @@ class SCUTSEGDataset(SegmentationDataset):
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
-        self.valid_classes = [0, 7, 24, 25, 26, 27, 13, 21, 28, 17]
-        self.class_map = dict(zip(self.valid_classes, range(10)))
-
-    def _encode_segmap(self, mask):
-        for _validc in self.valid_classes:
-            mask[mask == _validc] = self.class_map[_validc]
-        return mask
-
-    def _mask_transform(self, mask):
-        mask = self._encode_segmap(np.array(mask))
-        return torch.LongTensor(mask.astype("int32"))
+        valid_classes = [0, 7, 24, 25, 26, 27, 13, 21, 28, 17]
+        class_map = dict(zip(valid_classes, range(10)))
+        self.update_normalization(NormalizationTransform(self.mean, self.std))
+        self.update_image_transform(
+            ScutsegTransform(valid_classes=valid_classes, class_map=class_map)
+        )
 
     @property
     def class_names(
@@ -75,49 +70,6 @@ class SCUTSEGDataset(SegmentationDataset):
             "bus",
             "pole",
         ]
-
-    # @staticmethod
-    # def _get_scutseg_pairs(folder, split="train"):
-    #     def get_path_pairs(img_folder, mask_folder, edge_folder):
-    #         img_folder = os.path.join(img_folder, split)
-    #         mask_folder = os.path.join(mask_folder, split)
-    #         edge_folder = os.path.join(edge_folder, split)
-    #         img_paths = []
-    #         mask_paths = []
-    #         edge_paths = []
-    #         for root, _, files in os.walk(img_folder):
-    #             for filename in files:
-    #                 if filename.endswith(".jpg"):
-    #                     imgpath = os.path.join(root, filename)
-    #                     maskname = filename.replace(".jpg", "_labelIds.png")
-    #                     maskpath = os.path.join(mask_folder, maskname)
-    #                     edgepath = os.path.join(edge_folder, maskname)
-
-    #                     if (
-    #                         os.path.isfile(imgpath)
-    #                         and os.path.isfile(maskpath)
-    #                         and os.path.isfile(edgepath)
-    #                     ):
-    #                         img_paths.append(imgpath)
-    #                         mask_paths.append(maskpath)
-    #                         edge_paths.append(edgepath)
-    #                     else:
-    #                         logger.warning(f"Cannot find the {imgpath}, {maskpath}, or {edgepath}")
-
-    #         logger.info(f"Found {len(img_paths)} images in the folder {img_folder}")
-
-    #         return img_paths, mask_paths, edge_paths
-
-    #     if split in ("train", "val", "test"):
-    #         img_folder = os.path.join(folder, "image")
-    #         mask_folder = os.path.join(folder, "mask")
-    #         edge_folder = os.path.join(folder, "edges")
-    #         img_paths, mask_paths, edge_paths = get_path_pairs(
-    #             img_folder, mask_folder, edge_folder
-    #         )
-    #         return img_paths, mask_paths, edge_paths
-
-    #     raise ValueError("Split type unknown")
 
 
 if __name__ == "__main__":

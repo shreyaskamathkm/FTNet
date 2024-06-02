@@ -8,7 +8,12 @@ import os
 from pathlib import Path
 from typing import List
 
+from .file_path_handler import FilePathHandler
 from .segbase import SegmentationDataset
+from .transforms import NormalizationTransform
+
+logger = logging.getLogger(__name__)
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +36,10 @@ class MFNDataset(SegmentationDataset):
     ):
         super().__init__(root, split, mode, base_size, crop_size, sobel_edges)
 
-        self.images, self.mask_paths, self.edge_paths = SegmentationDataset._get_pairs(root, split)
+        self.images, self.mask_paths, self.edge_paths = FilePathHandler._get_pairs(
+            self.root, self.split
+        )
+
         if len(self.images) != len(self.mask_paths):
             raise ValueError("Mismatch between images and masks")
         if len(self.images) != len(self.edge_paths):
@@ -39,29 +47,7 @@ class MFNDataset(SegmentationDataset):
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
-    # def __getitem__(self, index: Union[int, List, Tuple]):  # type: ignore
-    #     scale = None
-    #     if isinstance(index, (list, tuple)):
-    #         index, scale = index
-
-    #     img = np.asarray(Image.open(self.images[index]))[:, :, 3]  # type: ignore
-    #     img = Image.fromarray(img).convert("RGB")
-
-    #     if self.mode == "infer":
-    #         img = self.normalize(img)
-    #         return img, os.path.basename(self.images[index])
-    #         """For Training and validation purposes."""
-    #     mask = Image.open(self.mask_paths[index])
-
-    #     # testing if sobel edge filter is required
-    #     edge = None
-    #     if not self.sobel_edges:
-    #         edge = Image.open(self.edge_paths[index])
-
-    #     # post process as required
-    #     img, mask, edge = self.post_process(img, mask, edge, scale)
-
-    #     return img, mask, edge, os.path.basename(self.images[index])
+        self.update_normalization(NormalizationTransform(self.mean, self.std))
 
     @property
     def class_names(self) -> List[str]:
