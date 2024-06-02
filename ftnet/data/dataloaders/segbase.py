@@ -19,6 +19,7 @@ __all__ = ["SegmentationDataset"]
 
 
 class SegmentationDataset:
+    NUM_CLASS = 0
     """Segmentation Base Dataset.
 
     Args:
@@ -111,16 +112,6 @@ class SegmentationDataset:
         img = self.normalization.normalize(img)
         return img, mask, edge, self.images[index].name
 
-    @property
-    def num_class(self) -> int:
-        """Number of categories."""
-        raise NotImplementedError
-
-    @property
-    def pred_offset(self) -> int:
-        """Prediction offset."""
-        raise NotImplementedError
-
     def __len__(self) -> int:
         return len(self.images)
 
@@ -129,3 +120,8 @@ class SegmentationDataset:
 
     def update_image_transform(self, transform: ImageTransform):
         self.image_transform = transform
+
+    @property
+    def num_class(self) -> int:
+        """Number of categories."""
+        return self.NUM_CLASS
