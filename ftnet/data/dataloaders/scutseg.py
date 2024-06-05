@@ -47,11 +47,11 @@ class SCUTSEGDataset(SegmentationDataset):
         if len(self.images) == 0:
             raise RuntimeError(f"Found 0 images in subfolder of: {root}")
 
-        valid_classes = [0, 7, 24, 25, 26, 27, 13, 21, 28, 17]
-        class_map = dict(zip(valid_classes, range(10)))
+        self.valid_classes = [0, 7, 24, 25, 26, 27, 13, 21, 28, 17]
+        self.class_map = dict(zip(self.valid_classes, range(10)))
         self.update_normalization(NormalizationTransform(self.mean, self.std))
         self.update_image_transform(
-            ScutsegTransform(valid_classes=valid_classes, class_map=class_map)
+            ScutsegTransform(valid_classes=self.valid_classes, class_map=self.class_map)
         )
 
     @property

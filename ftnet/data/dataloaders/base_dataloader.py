@@ -46,6 +46,7 @@ class SegmentationDataset:
         self.mode = mode or split
         self.base_size = base_size
         self.crop_size = crop_size
+        self.images = None
 
         if not root.exists():
             raise FileNotFoundError(f"Error: data root path {root} is wrong!")
@@ -58,7 +59,7 @@ class SegmentationDataset:
                 cv2.MORPH_RECT, (edge_radius, edge_radius)
             )
 
-        if self.mode != "test":
+        if self.mode not in ("test", "infer"):
             base_sizes = [ImageSize(base[0], base[1]) for base in base_size]
             crop_sizes = [ImageSize(crop[0], crop[1]) for crop in crop_size]
             self.sizes = [
@@ -67,7 +68,8 @@ class SegmentationDataset:
             ]
 
         self.normalization = None
-        self.transform = ResizingTransformations(self.sizes)
+        if self.mode != "infer":
+            self.transform = ResizingTransformations(self.sizes)
         self.image_transform = ImageTransform()
 
     def __getitem__(self, index: Union[int, List, Tuple]):

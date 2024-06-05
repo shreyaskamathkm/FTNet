@@ -5,10 +5,12 @@ https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/cityscapes.py
 
 import os
 
+from .base_dataloader import SegmentationDataset
 from .cityscapes_thermal import CityscapesCombineThermalDataset
 from .mfn import MFNDataset
 from .scutseg import SCUTSEGDataset
 from .soda import SODADataset
+from .transforms import NormalizationTransform
 
 # Define the base class mappings
 dataset_classes = {
@@ -19,34 +21,26 @@ dataset_classes = {
 }
 
 
-class LoadImages:
+class LoadImages(SegmentationDataset):
     def __init__(
         self,
         root="./Dataset/",
         dataset="soda",
         mode="infer",
+        sobel_edges=False,
     ):
-        super().__init__()
-        self.root = root
-        self.dataset = dataset
-        assert self.root.exists(), "Error: data root path is wrong!"
+        super().__init__(root, None, mode, None, None, sobel_edges)
+
+        root = root
+        assert root.exists(), "Error: data root path is wrong!"
 
         base_class = dataset_classes.get(dataset)
-
-        self.__class__ = type(
-            self.__class__.__name__, (self.__class__, base_class), {"mode": mode}
-        )
 
         if not base_class:
             raise ValueError(f"Dataset name '{dataset}' is not recognized")
 
-        self.mean = self.__class__.mean
-        self.std = self.__class__.std
-
-        self.images = list(self.root.glob("**/*[jpg]"))
-
-    def __len__(self):
-        return len(self.images)
+        self.images = list(self.root.glob("**/*[.jpg,png]"))
+        self.update_normalization(NormalizationTransform(base_class.mean, base_class.std))
 
 
 if __name__ == "__main__":
@@ -55,9 +49,8 @@ if __name__ == "__main__":
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
     sys.path.append(os.path.join(path.dirname(path.dirname(path.abspath(__file__))), ".."))
     from core.data.samplers import make_data_sampler, make_multiscale_batch_data_sampler
-    from torch.utils.data import DataLoader
-
     from datasets import *
+    from torch.utils.data import DataLoader
 
     data_kwargs = {"base_size": [520], "crop_size": [480]}
 

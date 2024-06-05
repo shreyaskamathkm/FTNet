@@ -44,7 +44,7 @@ class CityscapesThermalSplitDataset(SegmentationDataset):
 
         self.update_normalization(NormalizationTransform(self.mean, self.std))
 
-        valid_classes = [
+        self.valid_classes = [
             7,
             8,
             11,
@@ -65,7 +65,7 @@ class CityscapesThermalSplitDataset(SegmentationDataset):
             32,
             33,
         ]
-        key = np.array(
+        self.key = np.array(
             [
                 -1,
                 -1,
@@ -107,7 +107,7 @@ class CityscapesThermalSplitDataset(SegmentationDataset):
 
         self.update_image_transform(
             CityscapeTransform(
-                valid_classes=valid_classes, key=key, ignore_index=self.IGNORE_INDEX
+                valid_classes=self.valid_classes, key=self.key, ignore_index=self.IGNORE_INDEX
             )
         )
 
