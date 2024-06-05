@@ -98,13 +98,14 @@ class BaseTrainer(LightningModule):
             **data_kwargs,
         )
 
-        self.val_dataset = get_segmentation_dataset(
-            self.args.dataset.name,
-            split="test" if self.args.dataset.name != "scutseg" else "val",
-            mode="val",
-            sobel_edges=False,
-            **data_kwargs,
-        )
+        if not self.args.task.train_only:
+            self.val_dataset = get_segmentation_dataset(
+                self.args.dataset.name,
+                split="test" if self.args.dataset.name != "scutseg" else "val",
+                mode="val",
+                sobel_edges=False,
+                **data_kwargs,
+            )
 
     def configure_optimizers(self):
         """Configures the optimizer and scheduler for training.
