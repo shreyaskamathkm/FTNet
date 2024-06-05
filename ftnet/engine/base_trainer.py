@@ -201,28 +201,31 @@ class BaseTrainer(LightningModule):
         Returns:
             torch.utils.data.DataLoader: The validation DataLoader.
         """
-        val_sampler = make_data_sampler(
-            dataset=self.val_dataset,
-            shuffle=False,
-            distributed=self.distributed > 1,
-        )
+        if not self.args.task.train_only:
+            val_sampler = make_data_sampler(
+                dataset=self.val_dataset,
+                shuffle=False,
+                distributed=self.distributed > 1,
+            )
 
-        val_batch_sampler = make_batch_data_sampler(
-            val_sampler, batch_size=self.args.trainer.val_batch_size
-        )
-        val_loader = torch.utils.data.DataLoader(
-            dataset=self.val_dataset,
-            batch_sampler=val_batch_sampler,
-            num_workers=self.args.compute.workers,
-            pin_memory=True,
-        )
+            val_batch_sampler = make_batch_data_sampler(
+                val_sampler, batch_size=self.args.trainer.val_batch_size
+            )
+            val_loader = torch.utils.data.DataLoader(
+                dataset=self.val_dataset,
+                batch_sampler=val_batch_sampler,
+                num_workers=self.args.compute.workers,
+                pin_memory=True,
+            )
 
-        self.load_metrics(
-            mode="val",
-            num_class=self.val_dataset.NUM_CLASS,
-            ignore_index=self.val_dataset.IGNORE_INDEX,
-        )
-        return val_loader
+            self.load_metrics(
+                mode="val",
+                num_class=self.val_dataset.NUM_CLASS,
+                ignore_index=self.val_dataset.IGNORE_INDEX,
+            )
+            return val_loader
+
+        return None
 
     def test_dataloader(self):
         """Sets up the test DataLoader with appropriate batch size and data
@@ -231,10 +234,6 @@ class BaseTrainer(LightningModule):
         Returns:
             torch.utils.data.DataLoader: The test DataLoader.
         """
-        # data_kwargs = {
-        #     "root":
-        #     "base_size": None,
-        # }
         if self.args.task.mode == "test":
             logger.debug(" Running Inference Only")
 

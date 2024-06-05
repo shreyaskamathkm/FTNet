@@ -11,29 +11,24 @@ from .data_attributes import ImageSizes
 class ImageTransform:
     """Base class for image transformations."""
 
-    @staticmethod
-    def img_transform(img: Image.Image) -> np.ndarray:
+    def img_transform(self, img: Image.Image) -> np.ndarray:
         """Transform image to numpy array."""
         return np.array(img)
 
-    @staticmethod
-    def mask_transform(mask: Image.Image) -> torch.Tensor:
+    def mask_transform(self, mask: Image.Image) -> torch.Tensor:
         """Transform mask to numpy array."""
         return torch.LongTensor(np.array(mask).astype("int32"))
 
-    @staticmethod
-    def edge_transform(edge: Image.Image) -> np.ndarray:
+    def edge_transform(self, edge: Image.Image) -> np.ndarray:
         """Transform edge to numpy array."""
         return np.array(edge).astype("int32")
 
-    @staticmethod
-    def im2double(im_: np.ndarray) -> np.ndarray:
+    def im2double(self, im_: np.ndarray) -> np.ndarray:
         """Convert image to double precision."""
         info = np.iinfo(im_.dtype)
         return im_.astype(float) / info.max
 
-    @staticmethod
-    def np2tensor(array: np.ndarray) -> torch.Tensor:
+    def np2tensor(self, array: np.ndarray) -> torch.Tensor:
         """Convert numpy array to torch tensor."""
         if len(array.shape) == 3:
             np_transpose = np.ascontiguousarray(array.transpose((2, 0, 1)))
@@ -46,11 +41,12 @@ class NormalizationTransform:
     def __init__(self, mean: List[float], std: List[float]):
         self.mean = mean
         self.std = std
+        self.img_transform = ImageTransform()
 
     def normalize(self, img: Image.Image) -> torch.Tensor:
-        img = ImageTransform.im2double(np.array(img))
-        img = (img - self.mean) * np.reciprocal(self.std)
-        return ImageTransform.np2tensor(img).float()
+        img = self.img_transform.im2double(np.array(img))  # type: ignore
+        img = (img - self.mean) * np.reciprocal(self.std)  # type: ignore
+        return self.img_transform.np2tensor(img).float()
 
 
 class ResizingTransformations:
@@ -154,7 +150,7 @@ class ScutsegTransform(ImageTransform):
         self.valid_classes = valid_classes
         self.class_map = class_map
 
-    def encode_segmap(self, mask):
+    def encode_segmap(self, mask: np.ndarray) -> np.ndarray:
         for _validc in self.valid_classes:
             mask[mask == _validc] = self.class_map[_validc]
         return mask
@@ -163,3 +159,25 @@ class ScutsegTransform(ImageTransform):
         """Transform mask using a custom class mapping."""
         mask = self.encode_segmap(np.array(mask))
         return torch.LongTensor(mask.astype("int32"))
+
+
+class CityscapeTransform(ImageTransform):
+    """Derived class with a custom mask transformation."""
+
+    def __init__(self, valid_classes: list, key: dict, ignore_index):
+        self.valid_classes = valid_classes
+        self._mapping = np.array(range(-1, len(key) - 1)).astype("int32")
+        self.ignore_index = ignore_index
+
+    def _class_to_index(self, mask):
+        # assert the value
+        values = np.unique(mask)
+        for value in values:
+            assert value in self._mapping
+        index = np.digitize(mask.ravel(), self._mapping, right=True)
+        return self._key[index].reshape(mask.shape)
+
+    def _mask_transform(self, mask):
+        target = self._class_to_index(np.array(mask).astype("int32"))
+        target[target == -1] = self.ignore_index
+        return torch.LongTensor(np.array(target).astype("int32"))

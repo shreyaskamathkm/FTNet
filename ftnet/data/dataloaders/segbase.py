@@ -20,14 +20,15 @@ __all__ = ["SegmentationDataset"]
 
 class SegmentationDataset:
     NUM_CLASS = 0
+    NAME = None
     """Segmentation Base Dataset.
 
     Args:
         root (Path): Path to the dataset root directory.
         split (str): Dataset split, e.g., 'train', 'val', 'test'.
-        mode (str): Mode for the dataset, e.g., 'train', 'val', 'testval'.
-        base_size (List[int]): Base size of the image, default is [520].
-        crop_size (List[int]): Crop size of the image, default is [480].
+        mode (str): Mode for the dataset, e.g., 'train', 'val', 'testval', 'infer'.
+        base_size (List[List[int]]): Base size of the image, default is [[520, 520]].
+        crop_size (List[List[int]]): Crop size of the image, default is  [[480, 480]].
     """
 
     def __init__(
@@ -67,7 +68,7 @@ class SegmentationDataset:
 
         self.normalization = None
         self.transform = ResizingTransformations(self.sizes)
-        self.image_transform = ImageTransform
+        self.image_transform = ImageTransform()
 
     def __getitem__(self, index: Union[int, List, Tuple]):
         scale = None
@@ -125,3 +126,7 @@ class SegmentationDataset:
     def num_class(self) -> int:
         """Number of categories."""
         return self.NUM_CLASS
+
+    @property
+    def pred_offset(self):
+        return 0

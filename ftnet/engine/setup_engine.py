@@ -4,8 +4,6 @@ from typing import List
 from cfg import FTNetArgs
 from helper import checkpoint
 from lightning.pytorch import Trainer
-
-# from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 from lightning.pytorch.callbacks import Callback, LearningRateMonitor, TQDMProgressBar
 from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
@@ -67,14 +65,14 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
         num_nodes=args.compute.num_nodes,
         logger=[tensorboard_logger, wandb_logger],
         max_epochs=args.trainer.epochs,
-        # sync_batchnorm=True,
+        sync_batchnorm=True,
         accumulate_grad_batches=args.trainer.accumulate_grad_batches,
         callbacks=checkpoint_callbacks,
         fast_dev_run=args.task.debug,
         deterministic="warn",
         reload_dataloaders_every_n_epochs=1,
         use_distributed_sampler=False,
-        limit_train_batches=0.1,
+        limit_train_batches=0.1 if args.task.debug else 1.0,
         limit_val_batches=0.0 if args.task.train_only else 1.0,
     )
 

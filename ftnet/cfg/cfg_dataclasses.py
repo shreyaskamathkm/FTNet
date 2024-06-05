@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing import List, Literal
 
 import toml
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class TaskArgs(BaseModel):
@@ -117,3 +117,15 @@ class FTNetArgs(BaseModel):
             raise ValueError(f"Unexpected keys found in config: {', '.join(extra_keys)}")
 
         return cls.model_validate(config_dict)
+
+    @model_validator(mode="after")
+    @classmethod
+    def validate_all_fields_at_the_same_time(cls, field_values):
+        if (
+            field_values.dataset.name == "cityscapes_thermal_combine"
+            and not field_values.task.train_only
+        ):
+            raise ValueError(
+                "When train only mode is on, please update the dataset name to cityscapes_thermal_combine"
+            )
+        return field_values
