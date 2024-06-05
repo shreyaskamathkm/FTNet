@@ -8,9 +8,9 @@
 
 import lightning as pl
 
-from ftnet.cfg import FTNetArgs, parse_args
-from ftnet.engine.setup_engine import test_model, train_model
-from ftnet.helper import checkpoint, collect_env_info, get_rank, setup_logger
+from .cfg import FTNetArgs, parse_args
+from .engine.setup_engine import test_model, train_model
+from .helper import checkpoint, collect_env_info, get_rank, setup_logger
 
 
 def main() -> None:
