@@ -766,23 +766,3 @@ def resnest269(pretrained=False, root=root_pretrained_path, **kwargs):
         pretrained_dict = check_mismatch(model, pretrained_dict)
         model.load_state_dict(pretrained_dict, strict=False)
     return model
-
-
-if __name__ == "__main__":
-    import os
-    from os import path, sys
-
-    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
-    sys.path.append(os.path.join(path.dirname(path.dirname(path.abspath(__file__))), ".."))
-    from ptflops import get_model_complexity_info
-
-    img = torch.randint(3, 5, (2, 3, 512, 512)).float()
-    model = resnet50(pretrained_base=False, dilated=True, dilation=4)
-    # model = model.eval()
-
-    outputs = model(img)
-    macs, params = get_model_complexity_info(
-        model, (3, 224, 224), as_strings=True, print_per_layer_stat=True, verbose=True
-    )
-    print("{:<30}  {:<8}".format("Computational complexity: ", macs))
-    print("{:<30}  {:<8}".format("Number of parameters: ", params))

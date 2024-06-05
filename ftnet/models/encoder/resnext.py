@@ -215,7 +215,3 @@ def resnext101_32x8d(pretrained=False, **kwargs):
         state_dict = model_zoo.load_url(model_urls["resnext101_32x8d"])
         model.load_state_dict(state_dict)
     return model
-
-
-if __name__ == "__main__":
-    model = resnext101_32x8d()

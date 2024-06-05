@@ -192,7 +192,3 @@ def main() -> None:
                 )
         if num_gpu > 1:
             test_nccl_ops()
-
-
-if __name__ == "__main__":
-    main()  # pragma: no cover

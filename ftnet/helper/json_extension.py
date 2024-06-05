@@ -45,17 +45,3 @@ def my_pprint(dic):
     # pretty print
     pretty_dic = json.dumps(dic, indent=4, sort_keys=True)
     print(pretty_dic)
-    # print(json.dumps(dic, indent=4, sort_keys=True))
-    # return pretty_dic
-
-
-if __name__ == "__main__":
-    # import json  # results in non serializabe errors for torch.Tensors
-    from pprint import pprint
-
-    import torch
-
-    dic = {"x": torch.randn(1, 3), "rec": {"y": torch.randn(1, 3)}}
-
-    my_pprint(dic)
-    pprint(dic)

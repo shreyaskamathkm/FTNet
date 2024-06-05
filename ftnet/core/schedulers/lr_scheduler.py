@@ -214,25 +214,3 @@ class WarmupPolyLR(torch.optim.lr_scheduler._LRScheduler):
             float(self.target_lr + (base_lr - self.target_lr) * factor)
             for base_lr in self.base_lrs
         ]
-
-
-if __name__ == "__main__":
-    import torch
-    import torch.nn as nn
-
-    model = nn.Conv2d(16, 16, 3, 1, 1)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    lr_scheduler = WarmupMultiStepLR(
-        optimizer,
-        milestones=[30, 60],
-        gamma=0.1,
-        warmup_factor=1.0 / 3,
-        warmup_iters=60,
-        warmup_method="linear",
-        last_epoch=-1,
-    )
-
-    for epoch in range(1, 100):
-        lr_scheduler.step()
-
-        print(epoch, optimizer.param_groups[0]["lr"])

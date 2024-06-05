@@ -71,7 +71,3 @@ def make_multiscale_batch_data_sampler(
     if num_iters:
         batch_sampler = IterationBasedMultiscaleBatchSampler(batch_sampler, num_iters, start_iter)
     return batch_sampler
-
-
-if __name__ == "__main__":
-    pass
