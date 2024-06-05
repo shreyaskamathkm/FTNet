@@ -1,11 +1,9 @@
-from .dataloaders import (
-    CityscapesCombineThermalDataset,
-    CityscapesThermalSplitDataset,
-    LoadImages,
-    MFNDataset,
-    SCUTSEGDataset,
-    SODADataset,
-)
+from .dataloaders.cityscapes_thermal import CityscapesCombineThermalDataset
+from .dataloaders.cityscapes_thermal_split import CityscapesThermalSplitDataset
+from .dataloaders.load_images import LoadImages
+from .dataloaders.mfn import MFNDataset
+from .dataloaders.scutseg import SCUTSEGDataset
+from .dataloaders.soda import SODADataset
 
 __all__ = ["get_segmentation_dataset"]
 

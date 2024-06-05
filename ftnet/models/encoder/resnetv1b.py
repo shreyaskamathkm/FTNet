@@ -11,8 +11,8 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
-from helper.model_helpers import check_mismatch
 
+from ...helper.model_helpers import check_mismatch
 from .splat import SplAtConv2d
 
 root_pretrained_path = Path.cwd() / "pretrained_models"

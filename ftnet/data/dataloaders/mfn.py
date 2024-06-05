@@ -8,8 +8,8 @@ import os
 from pathlib import Path
 from typing import List
 
+from .base_dataloader import SegmentationDataset
 from .file_path_handler import FilePathHandler
-from .segbase import SegmentationDataset
 from .transforms import NormalizationTransform
 
 logger = logging.getLogger(__name__)
@@ -70,9 +70,8 @@ if __name__ == "__main__":
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
     sys.path.append(os.path.join(path.dirname(path.dirname(path.abspath(__file__))), ".."))
     from core.data.samplers import make_data_sampler, make_multiscale_batch_data_sampler
-    from torch.utils.data import DataLoader
-
     from datasets import *
+    from torch.utils.data import DataLoader
 
     data_kwargs = {"base_size": [520], "crop_size": [480]}
 

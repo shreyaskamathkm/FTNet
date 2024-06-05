@@ -2,7 +2,7 @@
 
 from typing import Any
 
-import models.segmentation_decoder as seg_dec
+from . import segmentation_decoder as seg_dec
 
 __all__ = ["get_segmentation_model"]
 

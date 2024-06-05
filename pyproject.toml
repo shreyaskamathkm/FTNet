@@ -53,6 +53,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 line-length = 99
 
+# [tool.poetry.scripts]
+# my-script = "ftnet.main:start"
+
 # [tool.ruff.format]
 # quote-style = "single"
 # indent-style = "tab"

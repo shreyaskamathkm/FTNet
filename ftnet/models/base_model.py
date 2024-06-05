@@ -11,7 +11,7 @@ from typing import List, Optional
 import torch.nn as nn
 from torch import Tensor
 
-from models import encoder as enc
+from ..models import encoder as enc
 
 logger = logging.getLogger(__name__)
 

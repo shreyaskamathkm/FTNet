@@ -14,7 +14,7 @@ We provide scripts for the models from our paper. You can train your own model f
 ## FTNet Model Weights
 
 Model weights are provided for ResNeXt50 and ResNeXt101.
-
+Note: if you use develop branch, then will have to download the rev-2 folder since it has been updated with the latest pytorch lightning package
 For user convenience, the Thermal Cityscape pretrained model and weights for all datasets are provided [here](https://tufts.box.com/s/deghum7pn6h25jn4sbdzqcjbzdt789ga).
 
 This link also provides the semantic maps generated during testing phase.
@@ -28,8 +28,9 @@ This link also provides the semantic maps generated during testing phase.
 ## Requirements
 
 - Hardware: 1 - 2 GPUs (better with >=11G GPU memory)
-- Python 3.8
-- Pytorch >=1.6 (Code tested on 1.6)
+- Python 3.10
+- Pytorch ==2.2.2+cu11
+- Poetry 1.8.3
 
 ## Code
 
@@ -45,7 +46,14 @@ cd FTNet
 Please run the following to meet the requirements of the model
 
 ```
-pip install -r requirements.txt
+poetry install
+```
+
+For developer
+
+```
+poetry install --with dev
+pre-commit install
 ```
 
 ## Setting up the environment for training and testing
@@ -60,34 +68,30 @@ We train and test the models on three dataset:
 
 Please download all the datasets from the link provided above. Once downloaded, run the following commands to get the dataset into the following data structure.
 
-For simplicity sake, consider all the images are downloaded to a folder name `Raw_Dataset`. The rest of the steps are as follows
+For simplicity sake, consider all the images are downloaded to a folder name `data/original`. The rest of the steps are as follows
 
 For Cityscapes thermal dataset
 
 ```
-cd Codes/src/datasets/utils/  # You are now in */src/datasets/utils/
-python Cityscape_folderMap.py --input-image-path /raw_dataset/SODA-20211127T202136Z-001/SODA/TIR_leftImg8bit/ --save-path /Processed_dataset/
+python -m ftnet.folder_mapping.utils.cityscape_folder_map  --input-image-path ./data/original/SODA/TIR_leftImg8bit/ --save-path ./data/processed_dataset/
 ```
 
 For SODA thermal dataset
 
 ```
-cd Codes/src/datasets/utils/  # You are now in */src/datasets/utils/
-python SODA_folderMap.py --input-image-path /raw_dataset/SODA-20211127T202136Z-001/SODA/InfraredSemanticLabel/ --save-path /Processed_dataset/
+python -m ftnet.folder_mapping.utils.soda_folder_map  --input-image-path ./data/original/SODA/InfraredSemanticLabel/ --save-path ./data/processed_dataset/
 ```
 
 For SCUTSeg thermal dataset
 
 ```
-cd Codes/src/datasets/utils/  # You are now in */src/datasets/utils/
-python scutseg_foldermap.py --input-image-path /raw_dataset/SCUT-SEG/ --save-path /Processed_dataset/
+python -m ftnet.folder_mapping.utils.scutseg_folder_map  --input-image-path ./data/original/scutseg/ --save-path ./data/processed_dataset/
 ```
 
 For MFN thermal dataset
 
 ```
-cd Codes/src/datasets/utils/  # You are now in */src/datasets/utils/
-python MFNDataset_folderMap.py --input-image-path /raw_dataset/ir_seg_dataset/ --save-path /Processed_dataset/
+python -m ftnet.folder_mapping.utils.mfn_folder_map  --input-image-path ./data/original/ir_seg_dataset --save-path ./data/processed_dataset/
 ```
 
 ### Generating Edges
@@ -99,21 +103,32 @@ cd Codes/src/datasets/edge_generation/
 Change the path in the 'main.m' file and run it to generate edges
 ```
 
+Python implementation is provided as well, however, this has not been tested rigorously
+
+```
+python -m ftnet.data.edge_generation.generate_edges  --datasets cityscape,soda,scutseg,mfn --save-path ./data/processed_dataset/ --radius 2,1,1,1
+```
+
 #### Dataset Structure
 
 Once the extracting and edge generation is completed, the dataset looks similar to the structure provided below:
 
 ```
 ├── ...
-├── Processed_dataset                                            # Dataset Folder
-│   ├── Cityscapes_thermal
-│   	├── CITYSCAPE_5000
+├── processed_dataset                                            # Dataset Folder
+│   ├── cityscape
 │           ├── edges
-│   	        └── train
+│   	        ├── train
+│   	        ├── val
+│   	        └── test
 │   	    ├── image
-│   	        └── train
+│   	        ├── train
+│   	        ├── val
+│   	        └── test
 │   	    └── mask
-│   	        └── train
+│   	        ├── train
+│   	        ├── val
+│   	        └── test
 │   ├── SODA
 │           ├── edges
 │   	        ├── train
@@ -153,17 +168,12 @@ Once the extracting and edge generation is completed, the dataset looks similar 
 └── ...
 ```
 
-The new processed dataset will be used for training purposes. You can now train FTNet by yourself. Training and testing script is provided in the  `*/FTNet/Codes/src/bash` folder. Before you run them, please fill in the appropriate details in the **.sh**  file before you execute.
+The new processed dataset will be used for training purposes. You can now train FTNet by yourself. Please update the [toml](ftnet/cfg/pretrain.toml) file accordingly.
 
-```bash
-cd /Codes/src/bash       # You are now in */src/bash/
-bash Train_and_test.sh     # To train and test one dataset. eg: SODA
-```
+To run the code
+'''
 
-```bash
-cd /Codes/src/bash       # You are now in */src/bash/
-bash Train_and_test_all.sh     # To train and test more than one dataset. eg: SODA, MFN, SCUT-Seg
-```
+'''
 
 <!-- LICENSE -->
 

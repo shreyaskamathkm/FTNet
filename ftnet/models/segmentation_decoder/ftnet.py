@@ -13,8 +13,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from ..base_model import SegBaseModel
 from ..model_helper import initialize_weights
-from ..segbase import SegBaseModel
 from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ def get_ftnet(
     pretrained_base: bool = False,
     **kwargs,
 ) -> FNet:
-    from data import datasets
+    from ...data import datasets
 
     return FNet(
         nclass=datasets[dataset.lower()].NUM_CLASS,

@@ -4,10 +4,10 @@ from typing import Any, Callable, List, Tuple, Union
 
 import torch
 import torch.nn as nn
-from helper.utils import as_numpy
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 from ftnet.helper.img_saving_helper import save_all_images, save_pred
+from ftnet.helper.utils import as_numpy
 
 from .base_trainer import BaseTrainer
 

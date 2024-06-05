@@ -5,7 +5,7 @@ from typing import Union
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ftnet.data.dataloaders.segbase import SegmentationDataset
+from ftnet.data.dataloaders.base_dataloader import SegmentationDataset
 from ftnet.helper.visualize import get_color_palette
 
 # def plot_confusion_matrix(

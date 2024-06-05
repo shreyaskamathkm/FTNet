@@ -7,22 +7,23 @@ from typing import Any, Callable, List, Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from core.data.samplers import (
-    make_batch_data_sampler,
-    make_data_sampler,
-    make_multiscale_batch_data_sampler,
-)
-from core.loss import get_segmentation_loss
-from helper.model_helpers import save_model_summary
-from helper.optimizer_scheduler_helper import make_optimizer, make_scheduler
 from lightning.pytorch import LightningModule
-from models import get_segmentation_model
 from torchmetrics import ConfusionMatrix as pl_ConfusionMatrix
 from torchmetrics.aggregation import MeanMetric
 from torchmetrics.classification import MulticlassJaccardIndex
 
-from data import get_segmentation_dataset
 from ftnet.helper.model_helpers import check_mismatch
+
+from ..core.data.samplers import (
+    make_batch_data_sampler,
+    make_data_sampler,
+    make_multiscale_batch_data_sampler,
+)
+from ..core.loss import get_segmentation_loss
+from ..data import get_segmentation_dataset
+from ..helper.model_helpers import save_model_summary
+from ..helper.optimizer_scheduler_helper import make_optimizer, make_scheduler
+from ..models import get_segmentation_model
 
 logger = logging.getLogger(__name__)
 

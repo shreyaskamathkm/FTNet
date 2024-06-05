@@ -1,12 +1,12 @@
 import logging
 from typing import List
 
-from cfg import FTNetArgs
-from helper import checkpoint
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import Callback, LearningRateMonitor, TQDMProgressBar
 from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
+from ..cfg import FTNetArgs
+from ..helper import checkpoint
 from .thermal_edge_trainer import SegmentationLightningModel
 
 logger = logging.getLogger(__name__)
