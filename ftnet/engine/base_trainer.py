@@ -226,7 +226,7 @@ class BaseTrainer(LightningModule):
             )
             return val_loader
 
-        return None
+        return []
 
     def test_dataloader(self):
         """Sets up the test DataLoader with appropriate batch size and data
