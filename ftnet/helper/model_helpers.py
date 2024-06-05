@@ -1,14 +1,15 @@
-
-from collections import OrderedDict
 import logging
-import torch
 import os
+from collections import OrderedDict
+
+import torch
 
 logger = logging.getLogger(__name__)
 
 
 def check_mismatch(model_dict: dict, pretrained_dict: dict) -> dict:
-    """Checks for mismatches between the model state dict and the pretrained state dict.
+    """Checks for mismatches between the model state dict and the pretrained
+    state dict.
 
     Args:
         model_dict (dict): The model's state dict.
@@ -17,7 +18,7 @@ def check_mismatch(model_dict: dict, pretrained_dict: dict) -> dict:
     Returns:
         dict: The updated model state dict.
     """
-    
+
     pretrained_dict = {key[6:]: item for key, item in pretrained_dict.items()}
     temp_dict = OrderedDict()
     for k, v in pretrained_dict.items():
@@ -33,7 +34,6 @@ def check_mismatch(model_dict: dict, pretrained_dict: dict) -> dict:
     return temp_dict
 
 
-
 def save_model_summary(model, dir_):
     """Print and save the network."""
     path = os.path.join(dir_, "model.txt")
@@ -45,6 +45,7 @@ def save_model_summary(model, dir_):
     config += f"\nTotal number of parameters in M: {num_params / (1000**2)}M"
     with open(path, "w") as text_file:
         text_file.write(config)
+
 
 def total_gradient(parameters):
     # =============================================================================
@@ -64,8 +65,8 @@ def print_network(net):
         num_params += param.numel()
     print(net)
     print(f"Total number of parameters: {int(num_params) / 1000**2} M")
-    
-    
+
+
 def save_checkpoint(states, is_best, output_dir, filename="checkpoint.pth.tar"):
     torch.save(states, os.path.join(output_dir, filename))
 
