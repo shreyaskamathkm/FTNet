@@ -21,7 +21,7 @@ def main() -> None:
     logger = setup_logger(
         save_dir=ckp.get_path("logs"),
         distributed_rank=get_rank(),
-        print_to_console=True,
+        debug=args.task.debug,
     )
     if args.compute.seed:
         pl.seed_everything(args.compute.seed, workers=True)

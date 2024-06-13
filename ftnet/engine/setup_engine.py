@@ -13,24 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 def setup_pl_loggers(args: FTNetArgs, ckp: checkpoint) -> tuple[TensorBoardLogger, WandbLogger]:
+    logger.debug("Setting up  TensorBoard logger")
     """Setup TensorBoard and Weights & Biases loggers."""
     tensorboard_logger = TensorBoardLogger(
         save_dir=ckp.get_path("logs"),
         name=f"Tensorboard_{args.model.name}_{args.dataset.name}",
     )
 
-    wandb_logger = WandbLogger(
-        name=f"Model: {args.model.name} Dataset: {args.dataset.name} Des : {args.wandb.wandb_name_ext}",
-        id=args.wandb.wandb_id,
-        project="Thermal Segmentation",
-        offline=args.task.debug,
-        save_dir=ckp.get_path("logs"),
-    )
-    return tensorboard_logger, wandb_logger
+    logger.debug("Setting up  Wandb logger")
 
-
-def setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: checkpoint) -> List[Callback]:
-    """Setup checkpoint directory and callbacks."""
     if not args.wandb.wandb_id:
         wandb_text_file = ckp.get_path("logs") / "wandb_id.txt"
         if wandb_text_file.is_file():
@@ -42,6 +33,21 @@ def setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: checkpoint) -> List[Ca
             args.wandb.wandb_id = wandb.util.generate_id()
             with wandb_text_file.open("a") as f:
                 f.write(args.wandb.wandb_id)
+
+    wandb_logger = WandbLogger(
+        name=f"Model: {args.model.name} Dataset: {args.dataset.name} Des : {args.wandb.wandb_name_ext}",
+        id=args.wandb.wandb_id,
+        project="Thermal Segmentation",
+        offline=args.task.debug,
+        save_dir=ckp.get_path("logs"),
+    )
+
+    return tensorboard_logger, wandb_logger
+
+
+def setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: checkpoint) -> List[Callback]:
+    """Setup checkpoint directory and callbacks."""
+    logger.debug(" Setting up Callbacks")
 
     return [
         LearningRateMonitor(),
@@ -72,7 +78,7 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
         deterministic="warn",
         reload_dataloaders_every_n_epochs=1,
         use_distributed_sampler=False,
-        limit_train_batches=0.1 if args.task.debug else 1.0,
+        limit_train_batches=0.2 if args.task.debug else 1.0,
         limit_val_batches=0.0 if args.task.train_only else 1.0,
     )
 

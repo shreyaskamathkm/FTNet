@@ -166,6 +166,7 @@ class CityscapeTransform(ImageTransform):
 
     def __init__(self, valid_classes: list, key: dict, ignore_index):
         self.valid_classes = valid_classes
+        self.key = key
         self._mapping = np.array(range(-1, len(key) - 1)).astype("int32")
         self.ignore_index = ignore_index
 
@@ -175,9 +176,9 @@ class CityscapeTransform(ImageTransform):
         for value in values:
             assert value in self._mapping
         index = np.digitize(mask.ravel(), self._mapping, right=True)
-        return self._key[index].reshape(mask.shape)
+        return self.key[index].reshape(mask.shape)
 
-    def _mask_transform(self, mask):
+    def mask_transform(self, mask):
         target = self._class_to_index(np.array(mask).astype("int32"))
         target[target == -1] = self.ignore_index
         return torch.LongTensor(np.array(target).astype("int32"))

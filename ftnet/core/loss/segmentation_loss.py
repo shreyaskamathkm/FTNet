@@ -45,7 +45,7 @@ class MixSoftmaxCrossEntropyLoss(nn.CrossEntropyLoss):
 
 
 class EdgeNetLoss(nn.Module):
-    def __init__(self, bce_weight: float = None, loss_weight: int = 1, **kwargs: Any) -> None:
+    def __init__(self, loss_weight: int = 1, **kwargs: Any) -> None:
         super().__init__()
         self.cross_entropy = MixSoftmaxCrossEntropyLoss(**kwargs)
         self.loss_weight = loss_weight
@@ -69,7 +69,9 @@ class EdgeNetLoss(nn.Module):
 
         loss1 = self.loss_weight * self.auto_weight_bce(pred_edge_map, target_edges.float())
         loss2 = self.cross_entropy(pred_class_map, target_maps)
-        logger.debug(f"loss_weight: {self.loss_weight} loss1: {loss1}  loss2: {loss2}")
+        logger.debug(
+            f"loss_weight: {self.loss_weight} BCE Loss: {loss1}  Cross Entropy Loss: {loss2}"
+        )
         return loss1 + loss2
 
 

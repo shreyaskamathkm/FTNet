@@ -9,6 +9,8 @@ from rich.logging import RichHandler
 __all__ = ["setup_logger"]
 
 MINIMUM_GLOBAL_LEVEL = logging.INFO
+DEBUG_LEVEL = logging.DEBUG
+
 GLOBAL_HANDLER = logging.StreamHandler(stream=sys.stdout)
 # Define the log format
 LOG_FORMAT = logging.Formatter(
@@ -32,19 +34,20 @@ def setup_logger(
     filename: str = "log.txt",
     mode: str = "w",
     distributed_rank: int = 0,
-    print_to_console: bool = True,
+    debug: bool = False,
 ):
-    # logger = logging.getLogger(name)
+    level = DEBUG_LEVEL if debug else MINIMUM_GLOBAL_LEVEL
     logger = logging.getLogger()
-    logger.setLevel(MINIMUM_GLOBAL_LEVEL)
+
+    logger.setLevel(level)
     logger.propagate = False
 
     if distributed_rank > 0:
         return logger
 
-    if print_to_console and distributed_rank == 0:
+    if distributed_rank == 0:
         ch = RichHandler()
-        ch.setLevel(MINIMUM_GLOBAL_LEVEL)
+        ch.setLevel(level)
         logger.addHandler(ch)
 
     if save_dir:
@@ -58,7 +61,7 @@ def setup_logger(
         log_file_path = save_dir / filename
 
         fh = logging.FileHandler(log_file_path, mode=mode)
-        fh.setLevel(MINIMUM_GLOBAL_LEVEL)
+        fh.setLevel(level)
         fh.setFormatter(LOG_FORMAT)
         logger.addHandler(fh)
 
