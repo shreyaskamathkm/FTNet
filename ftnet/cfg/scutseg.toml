@@ -19,9 +19,9 @@ backbone = "resnext50_32x4d"
 dilation = false
 
 [dataset]
-name = "mfn"
+name = "scutseg"
 # dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
-dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/mfn'
+dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/scutseg'
 base_size = [[520,520]]
 crop_size = [[480,480]]
 
@@ -44,10 +44,10 @@ warmup_method = "linear"
 [checkpoint]
 # resume = none
 # pretrain_checkpoint =
-save_dir = './results/mfn'
+save_dir = './results/scutseg'
 # test_checkpoint =
-save_images = false
-save_images_as_subplots = false
+save_images = true
+save_images_as_subplots = true
 
 [compute]
 devices = 1

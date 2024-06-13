@@ -19,11 +19,10 @@ backbone = "resnext50_32x4d"
 dilation = false
 
 [dataset]
-name = "mfn"
-# dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
-dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/mfn'
-base_size = [[520,520]]
-crop_size = [[480,480]]
+name = "cityscapes_thermal_split"
+dataset_path='./data/processed_dataset/cityscape'
+base_size = [[520,520]] # Needs to be W, H
+crop_size = [[300,300]] # Needs to be W, H
 
 
 [optimizer]
@@ -43,9 +42,9 @@ warmup_method = "linear"
 
 [checkpoint]
 # resume = none
-# pretrain_checkpoint =
-save_dir = './results/mfn'
-# test_checkpoint =
+# pretrain_checkpoint = none
+save_dir = './results/cityscape_split'
+# test_checkpoint = none
 save_images = false
 save_images_as_subplots = false
 

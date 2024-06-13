@@ -115,21 +115,28 @@ def save_all_images(
 
     for i in range(original_img.shape[0]):
         if save_images_as_subplots:
-            fig = plt.figure(figsize=(8.5, 11))
+            fig = plt.figure(figsize=(14, 7))
+
             plt.subplot(1, 4, 1)
             plt.imshow(original_img[i])
+            plt.axis("on")  # Add axis for the original image
+
             plt.subplot(1, 4, 2)
             plt.imshow(np.array(get_color_palette(groundtruth[i], dataset.NAME)))
+            plt.axis("on")  # Add axis for the ground truth
+
             plt.subplot(1, 4, 3)
             plt.imshow(np.array(get_color_palette(prediction[i], dataset.NAME)))
+            plt.axis("on")  # Add axis for the prediction
+
             plt.subplot(1, 4, 4)
             plt.imshow(np.array(edge_map[i][0]))
-            plt.axis("off")
+            plt.axis("on")  # Add axis for the edge map
+
             fig.savefig(
                 base_path / f"{Path(filename[i]).with_suffix('.png')}",
                 bbox_inches="tight",
             )
-            plt.close()
         else:
             plt.imsave(
                 base_path / f"Pred_{Path(filename[i]).with_suffix('.png')}",
@@ -139,7 +146,7 @@ def save_all_images(
                 base_path / f"Edges_{Path(filename[i]).with_suffix('.png')}",
                 np.array(edge_map[i][0]),
             )
-    plt.close()
+        plt.close()
 
 
 def save_pred(

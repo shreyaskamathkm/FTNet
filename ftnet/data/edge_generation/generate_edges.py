@@ -1,6 +1,9 @@
 """
 Example run:   python -m ftnet.data.edge_generation.generate_edges   --datasets <dataset name to generate edges>  --save-path <path to save dataset> --radius <corresponding radii>
 python -m ftnet.data.edge_generation.generate_edges  --datasets cityscape,soda,scutseg,mfn --save-path ./data/processed_dataset/ --radius 2,1,1,1
+
+labels_path = ['cityscape/', 'soda/', 'scutseg/', 'mfn/']
+radius = [2, 1, 1, 1]
 """
 
 import argparse
@@ -16,18 +19,9 @@ from .seg2edge import seg2edge
 logger = logging.getLogger(__name__)
 
 
-# Set up logging
-# path = Path("/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/")
-# labels_path = ['CITYSCAPE_5000/', 'SODA/', 'SCUTSEG/', 'MFN/']
-# radius = [2, 1, 1, 1]
-
-# datasets = ['cityscapes', 'soda', 'scutseg', 'mfn']
-# datasets = ["MFN"]
-
-
 DATASET_SETS = {
     "cityscape": ["train", "val", "test"],
-    "soda": ["train", "test"],
+    "soda": ["train", "val", "test"],
     "scutseg": ["train", "val"],
     "mfn": ["train", "val", "test"],
 }

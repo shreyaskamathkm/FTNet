@@ -16,7 +16,7 @@ from .helper import checkpoint, collect_env_info, get_rank, setup_logger
 def main() -> None:
     args = parse_args()
     args = FTNetArgs.from_config(args.config)
-    ckp = checkpoint(args.checkpoint.save_dir)
+    ckp = checkpoint(args.checkpoint.save_dir, test=args.task.mode in ("test", "infer"))
 
     logger = setup_logger(
         save_dir=ckp.get_path("logs"),

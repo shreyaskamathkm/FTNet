@@ -1,13 +1,13 @@
 [task]
 mode = "train"
 train_only=false
-debug = false
+debug = true
 
 [trainer]
 loss_weight = 20
 epochs = 100
-train_batch_size = 16
-val_batch_size = 16
+train_batch_size = 2
+val_batch_size = 2
 
 [model]
 no_of_filters = 128
@@ -19,9 +19,9 @@ backbone = "resnext50_32x4d"
 dilation = false
 
 [dataset]
-name = "mfn"
+name = "soda"
 # dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
-dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/mfn'
+dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/soda'
 base_size = [[520,520]]
 crop_size = [[480,480]]
 
@@ -44,10 +44,10 @@ warmup_method = "linear"
 [checkpoint]
 # resume = none
 # pretrain_checkpoint =
-save_dir = './results/mfn'
+save_dir = './results/soda'
 # test_checkpoint =
-save_images = false
-save_images_as_subplots = false
+save_images = true
+save_images_as_subplots = true
 
 [compute]
 devices = 1

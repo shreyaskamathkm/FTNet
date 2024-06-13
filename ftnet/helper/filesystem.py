@@ -8,7 +8,7 @@ __all__ = ["checkpoint"]
 
 
 class checkpoint:
-    def __init__(self, save_path: Path, test=False):
+    def __init__(self, save_path: Path, test: bool = False):
         self.save_path = save_path
         if test:
             self.save_path = Path(self.save_path) / "Evaluation"

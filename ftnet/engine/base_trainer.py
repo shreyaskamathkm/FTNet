@@ -72,7 +72,7 @@ class BaseTrainer(LightningModule):
                 and self.args.checkpoint.pretrain_checkpoint.exists()
             ):
                 self.load_weights_from_checkpoint(
-                    self.args.trainer.pretrain_checkpoint, pretrain=True
+                    self.args.trainer.pretrain_checkpoint, strict=False
                 )
 
             self.criterion = get_segmentation_loss(
@@ -101,7 +101,7 @@ class BaseTrainer(LightningModule):
         if not self.args.task.train_only:
             self.val_dataset = get_segmentation_dataset(
                 self.args.dataset.name,
-                split="test" if self.args.dataset.name != "scutseg" else "val",
+                split="val",
                 mode="val",
                 sobel_edges=False,
                 **data_kwargs,
@@ -429,7 +429,7 @@ class BaseTrainer(LightningModule):
         """
         raise NotImplementedError
 
-    def load_weights_from_checkpoint(self, checkpoint: str, pretrain: bool = False) -> None:
+    def load_weights_from_checkpoint(self, checkpoint: str, strict: bool = False) -> None:
         """Loads model weights from a checkpoint file.
 
         Args:
@@ -462,7 +462,7 @@ class BaseTrainer(LightningModule):
             model_dict = check_mismatch(model_dict, pretrained_dict)
             self.model.load_state_dict(
                 model_dict,
-                strict=pretrain,
+                strict=strict,
             )
             logger.info("Pre-trained model loaded successfully")
 
