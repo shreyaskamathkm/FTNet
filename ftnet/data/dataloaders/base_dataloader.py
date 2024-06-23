@@ -5,7 +5,7 @@ https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/segbase.py
 
 import logging
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -19,8 +19,6 @@ __all__ = ["SegmentationDataset"]
 
 
 class SegmentationDataset:
-    NUM_CLASS = 0
-    NAME = None
     """Segmentation Base Dataset.
 
     Args:
@@ -28,8 +26,12 @@ class SegmentationDataset:
         split (str): Dataset split, e.g., 'train', 'val', 'test'.
         mode (str): Mode for the dataset, e.g., 'train', 'val', 'testval', 'infer'.
         base_size (List[List[int]]): Base size of the image, default is [[520, 520]].
-        crop_size (List[List[int]]): Crop size of the image, default is  [[480, 480]].
+        crop_size (List[List[int]]): Crop size of the image, default is [[480, 480]].
+        sobel_edges (bool): Whether to apply Sobel edges, default is False.
     """
+
+    NUM_CLASS = 0
+    NAME = None
 
     def __init__(
         self,
@@ -40,6 +42,16 @@ class SegmentationDataset:
         crop_size: List[List[int]] = [[480, 480]],
         sobel_edges: bool = False,
     ) -> None:
+        """Initialize the SegmentationDataset instance.
+
+        Args:
+            root (Path): Root directory of the dataset.
+            split (str): Dataset split ('train', 'val', 'test').
+            mode (str): Mode of the dataset ('train', 'val', 'testval', 'infer').
+            base_size (List[List[int]]): Base size of the images.
+            crop_size (List[List[int]]): Crop size of the images.
+            sobel_edges (bool): Whether to apply Sobel edges.
+        """
         super().__init__()
         self.root = root
         self.split = split
@@ -47,11 +59,14 @@ class SegmentationDataset:
         self.base_size = base_size
         self.crop_size = crop_size
         self.images = None
+        self.mask_paths = None
+        self.edge_paths = None
 
         if not root.exists():
             raise FileNotFoundError(f"Error: data root path {root} is wrong!")
 
         self.sobel_edges = sobel_edges
+        self.edge_kernel = None
 
         if self.sobel_edges:
             edge_radius = 7
@@ -59,20 +74,37 @@ class SegmentationDataset:
                 cv2.MORPH_RECT, (edge_radius, edge_radius)
             )
 
-        if self.mode not in ("test", "infer"):
-            base_sizes = [ImageSize(base[0], base[1]) for base in base_size]
-            crop_sizes = [ImageSize(crop[0], crop[1]) for crop in crop_size]
-            self.sizes = [
+        self.sizes = self._initialize_sizes()
+        self.normalization = None
+        # this is only used for training and validation; not for testing
+        self.transform = ResizingTransformations(self.sizes) if self.sizes else None
+        self.image_transform = ImageTransform()
+
+    def _initialize_sizes(self) -> Optional[List[ImageSizes]]:
+        """Initialize sizes for resizing based on the mode.
+
+        Returns:
+            Optional[List[ImageSizes]]: List of ImageSizes objects or None.
+        """
+        if self.mode not in ("testval", "infer"):
+            base_sizes = [ImageSize(base[0], base[1]) for base in self.base_size]
+            crop_sizes = [ImageSize(crop[0], crop[1]) for crop in self.crop_size]
+            return [
                 ImageSizes(base_size=base, crop_size=crop)
                 for crop, base in zip(crop_sizes, base_sizes)
             ]
-
-        self.normalization = None
-        if self.mode != "infer":
-            self.transform = ResizingTransformations(self.sizes)
-        self.image_transform = ImageTransform()
+        return None
 
     def __getitem__(self, index: Union[int, List, Tuple]):
+        """Retrieve an item (image, mask, edge) from the dataset at the
+        specified index.
+
+        Args:
+            index (Union[int, List, Tuple]): Index or tuple (index, scale).
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, str]: Image, mask, edge, image name.
+        """
         scale = None
         if isinstance(index, (list, tuple)):
             index, scale = index
@@ -84,9 +116,10 @@ class SegmentationDataset:
             img = Image.open(self.images[index]).convert("RGB")
 
         if self.mode == "infer":
+            img, w, h = self.transform.test_sync_transform(img)
             img = self.image_transform.img_transform(img)
             img = self.normalization.normalize(img)
-            return img, self.images[index].name
+            return img, self.images[index].name, w, h
 
         mask = Image.open(self.mask_paths[index])
 
@@ -95,7 +128,7 @@ class SegmentationDataset:
             edge = Image.open(self.edge_paths[index])
 
         if not edge:
-            id255 = np.where(mask == 255)
+            id255 = np.where(np.array(mask) == 255)
             no255_gt = np.array(mask)
             no255_gt[id255] = 0
             edge = cv2.Canny(no255_gt, 5, 5, apertureSize=7)
@@ -116,19 +149,43 @@ class SegmentationDataset:
         return img, mask, edge, self.images[index].name
 
     def __len__(self) -> int:
+        """Get the number of images in the dataset.
+
+        Returns:
+            int: Number of images.
+        """
         return len(self.images)
 
     def update_normalization(self, normalization: NormalizationTransform):
+        """Update the normalization transformation for images.
+
+        Args:
+            normalization (NormalizationTransform): Normalization transformation object.
+        """
         self.normalization = normalization
 
     def update_image_transform(self, transform: ImageTransform):
+        """Update the image transformation pipeline.
+
+        Args:
+            transform (ImageTransform): Image transformation object.
+        """
         self.image_transform = transform
 
     @property
     def num_class(self) -> int:
-        """Number of categories."""
+        """Get the number of classes in the dataset.
+
+        Returns:
+            int: Number of classes.
+        """
         return self.NUM_CLASS
 
     @property
     def pred_offset(self):
+        """Get the prediction offset.
+
+        Returns:
+            int: Prediction offset.
+        """
         return 0

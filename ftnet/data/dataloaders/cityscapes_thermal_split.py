@@ -14,6 +14,16 @@ from .transforms import CityscapeTransform, NormalizationTransform
 
 
 class CityscapesThermalSplitDataset(SegmentationDataset):
+    """Cityscapes Thermal Split Dataset for segmentation tasks.
+
+    Attributes:
+        NUM_CLASS (int): Number of classes.
+        IGNORE_INDEX (int): Index to ignore in the target.
+        NAME (str): Name of the dataset.
+        mean (list): Mean values for normalization.
+        std (list): Standard deviation values for normalization.
+    """
+
     NUM_CLASS = 19
     IGNORE_INDEX = -1
     NAME = "cityscapes_thermal"
@@ -29,6 +39,16 @@ class CityscapesThermalSplitDataset(SegmentationDataset):
         mode: str = None,
         sobel_edges: bool = False,
     ):
+        """Initialize the dataset.
+
+        Args:
+            root (Path): Root directory of the dataset.
+            split (str, optional): Split of the dataset ('train', 'val', 'test'). Defaults to 'train'.
+            base_size (List[List[int]], optional): Base size for resizing. Defaults to [[520, 520]].
+            crop_size (List[List[int]], optional): Crop size for cropping. Defaults to [[480, 480]].
+            mode (str, optional): Mode of the dataset. Defaults to None.
+            sobel_edges (bool, optional): Whether to use Sobel edges. Defaults to False.
+        """
         super().__init__(root, split, mode, base_size, crop_size, sobel_edges)
 
         self.images, self.mask_paths, self.edge_paths = FilePathHandler._get_city_pairs(
@@ -111,9 +131,12 @@ class CityscapesThermalSplitDataset(SegmentationDataset):
         )
 
     @property
-    def class_names(
-        self,
-    ):
+    def class_names(self) -> List[str]:
+        """Get the class names for the dataset.
+
+        Returns:
+            List[str]: List of class names.
+        """
         return [
             "road",
             "sidewalk",
@@ -133,5 +156,5 @@ class CityscapesThermalSplitDataset(SegmentationDataset):
             "bus",
             "train",
             "motorcycle",
-            "bicyle",
+            "bicycle",
         ]
