@@ -13,10 +13,11 @@ class TaskArgs(BaseModel):
 
 
 class TrainingHyperParamsArgs(BaseModel):
-    loss_weight: int = 1
+    loss_weight: int = 20
     epochs: int = 100
     train_batch_size: int = 16
     val_batch_size: int = 4
+    test_batch_size: int = 1
     accumulate_grad_batches: int = 1
 
 
@@ -41,8 +42,8 @@ class DataLoaderArgs(BaseModel):
         "cityscapes_thermal_combine", "cityscapes_thermal_split", "soda", "mfn", "scutseg"
     ] = "soda"
     dataset_path: Path = Path("./Dataset/")
-    base_size: List[List[int]] = [[300]]
-    crop_size: List[List[int]] = [[256]]
+    base_size: List[List[int]] = None
+    crop_size: List[List[int]] = None
 
 
 class WandBArgs(BaseModel):
