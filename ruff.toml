@@ -1,0 +1,41 @@
+line-length = 99
+
+# [tool.poetry.scripts]
+# my-script = "ftnet.main:start"
+
+# [tool.ruff.format]
+# quote-style = "single"
+# indent-style = "tab"
+# docstring-code-format = true
+
+[lint]
+# NOTE: Synchoronize the ignores with .flake8
+select = [
+    "E", "W",  # see: https://pypi.org/project/pycodestyle
+    "F",  # see: https://pypi.org/project/pyflakes
+    # "S",  # see: https://pypi.org/project/flake8-bandit
+    "RUF018",  # see: https://docs.astral.sh/ruff/rules/assignment-in-assert
+    "UP", # see: https://docs.astral.sh/ruff/rules/#pyupgrade-up
+]
+extend-select = [
+    "I",  # see: isort
+    "C4",  # see: https://pypi.org/project/flake8-comprehensions
+    "SIM",  # see: https://pypi.org/project/flake8-simplify
+    "RET",  # see: https://pypi.org/project/flake8-return
+    "PT",  # see: https://pypi.org/project/flake8-pytest-style
+    "RUF100",  # see: https://docs.astral.sh/ruff/rules/unused-noqa/
+]
+ignore = [
+    "F403",
+    "E402",
+    "E731",
+    "C417",
+    "E501",
+    "SIM105",
+]
+ignore-init-module-imports = true
+
+# [tool.ruff.lint.per-file-ignores]
+# "__init__.py" = [
+#     "F401",
+# ]
