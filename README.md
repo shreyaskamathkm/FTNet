@@ -8,7 +8,7 @@
 
 This repository is an official PyTorch implementation of the paper **" [FTNet: Feature Transverse Network for Thermal Semantic Segmentation](https://ieeexplore.ieee.org/abstract/document/9585453) "**
 
-![Main Figure](https://github.com/shreyaskamathkm/FTNet/blob/main/images/Main%20Figure.png)
+![Main Figure](./artifacts/main_figure.png)
 We provide scripts for the models from our paper. You can train your own model from scratch, or use pretrained models for testing.
 
 ## FTNet Model Weights
