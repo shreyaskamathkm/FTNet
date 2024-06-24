@@ -1,3 +1,3 @@
 """Model Zoo."""
 
-from .ftnet import *
+from .ftnet_model import *

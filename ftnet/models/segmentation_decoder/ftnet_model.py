@@ -20,7 +20,7 @@ from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 logger = logging.getLogger(__name__)
 
 
-class FNet(SegBaseModel):
+class FTNet(SegBaseModel):
     def __init__(
         self,
         nclass: int,
@@ -102,10 +102,10 @@ def get_ftnet(
     root: Path = None,
     pretrained_base: bool = False,
     **kwargs,
-) -> FNet:
+) -> FTNet:
     from ...core.dataloaders import datasets
 
-    return FNet(
+    return FTNet(
         nclass=datasets[dataset.lower()].NUM_CLASS,
         backbone=backbone,
         pretrained_base=pretrained_base,
