@@ -73,25 +73,25 @@ For simplicity sake, consider all the images are downloaded to a folder name `da
 For Cityscapes thermal dataset
 
 ```
-python -m ftnet.folder_mapping.utils.cityscape_folder_map  --input-image-path ./data/original/SODA/TIR_leftImg8bit/ --save-path ./data/processed_dataset/
+python -m ftnet.helper.folder_mapping.cityscape_folder_map  --input-image-path ./data/original/SODA/TIR_leftImg8bit/ --save-path ./data/processed_dataset/
 ```
 
 For SODA thermal dataset
 
 ```
-python -m ftnet.folder_mapping.utils.soda_folder_map  --input-image-path ./data/original/SODA/InfraredSemanticLabel/ --save-path ./data/processed_dataset/
+python -m ftnet.helper.folder_mapping.soda_folder_map  --input-image-path ./data/original/SODA/InfraredSemanticLabel/ --save-path ./data/processed_dataset/
 ```
 
 For SCUTSeg thermal dataset
 
 ```
-python -m ftnet.folder_mapping.utils.scutseg_folder_map  --input-image-path ./data/original/scutseg/ --save-path ./data/processed_dataset/
+python -m ftnet.helper.folder_mapping.scutseg_folder_map  --input-image-path ./data/original/scutseg/ --save-path ./data/processed_dataset/
 ```
 
 For MFN thermal dataset
 
 ```
-python -m ftnet.folder_mapping.utils.mfn_folder_map  --input-image-path ./data/original/ir_seg_dataset --save-path ./data/processed_dataset/
+python -m ftnet.helper.folder_mapping.mfn_folder_map  --input-image-path ./data/original/ir_seg_dataset --save-path ./data/processed_dataset/
 ```
 
 ### Generating Edges
@@ -168,7 +168,7 @@ Once the extracting and edge generation is completed, the dataset looks similar 
 └── ...
 ```
 
-The new processed dataset will be used for training purposes. You can now train FTNet by yourself. Please update the [toml](ftnet/cfg/pretrain.toml) file accordingly.
+The new processed dataset will be used for training purposes. You can now train FTNet by yourself. Please update the [toml](ftnet/cfg/) files accordingly.
 
 To run the code
 '''

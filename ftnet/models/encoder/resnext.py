@@ -14,7 +14,6 @@ root_pretrained_path = Path.cwd() / "pretrained_models"
 root_pretrained_path.mkdir(parents=True, exist_ok=True)
 os.environ["TORCH_HOME"] = str(root_pretrained_path)
 
-__all__ = ["ResNext", "resnext50_32x4d", "resnext101_32x8d"]
 
 model_urls = {
     "resnext50_32x4d": "https://download.pytorch.org/models/resnext50_32x4d-7cdf4587.pth",

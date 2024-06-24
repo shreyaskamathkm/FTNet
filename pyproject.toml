@@ -13,12 +13,12 @@ matplotlib = "^3.8.4"
 numpy = "^1.26.4"
 opencv-python = "^4.9.0.80"
 torch = [
-    {version = "^2.2.1", source="pypi", markers = "sys_platform == 'darwin'"},
-    {version = "^2.2.1", source = "torchgpu", markers = "sys_platform == 'linux'"}
+    {version = "^2.3.1", source="pypi", markers = "sys_platform == 'darwin'"},
+    {version = "^2.3.1", source = "torchgpu", markers = "sys_platform == 'linux'"}
 ]
 torchvision = [
-    {version = "^0.17.1", source="pypi", markers = "sys_platform == 'darwin'"},
-    {version = "^0.17.1", source = "torchgpu", markers = "sys_platform == 'linux'"}
+    {version = "^0.18", source="pypi", markers = "sys_platform == 'darwin'"},
+    {version = "^0.18", source = "torchgpu", markers = "sys_platform == 'linux'"}
 ]
 lightning = "^2.2.4"
 toml = "^0.10.2"

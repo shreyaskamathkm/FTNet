@@ -5,52 +5,66 @@ from typing import Any, List, Union
 
 import torch.optim as optim
 from torch.optim import Optimizer
-from torch.optim.lr_scheduler import MultiStepLR, OneCycleLR, StepLR, _LRScheduler
+from torch.optim.lr_scheduler import LRScheduler, MultiStepLR, OneCycleLR, StepLR
 
-# Assuming these are defined elsewhere in the codebase
-from ftnet.core.optimizers.adabound import AdaBound
-from ftnet.core.schedulers.lr_scheduler import WarmupMultiStepLR, WarmupPolyLR
+from ..core.optimizers.adabound import AdaBound
+from ..core.schedulers import WarmupMultiStepLR, WarmupPolyLR
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["make_optimizer", "make_scheduler"]
-
 
 def make_optimizer(args: Namespace, params: Union[List[dict], Any]) -> Optimizer:
+    """Create an optimizer based on provided arguments.
+
+    Args:
+        args (Namespace): Arguments containing optimizer parameters.
+        params (Union[List[dict], Any]): Parameters to optimize.
+
+    Returns:
+        Optimizer: Optimizer instance.
+    """
     optimizer_name = args.optimizer.name.lower()
     kwargs = {}
 
     if optimizer_name == "sgd":
         optimizer_function = optim.SGD
-        kwargs |= {
-            "momentum": args.optimizer.momentum,
-            "nesterov": args.optimizer.nesterov,
-        }
+        kwargs.update(
+            {
+                "momentum": args.optimizer.momentum,
+                "nesterov": args.optimizer.nesterov,
+            }
+        )
         logger.info("Optimizer SGD is being used")
     elif optimizer_name == "adam":
         optimizer_function = optim.Adam
-        kwargs |= {
-            "betas": (args.optimizer.beta1, args.optimizer.beta2),
-            "eps": args.optimizer.epsilon,
-        }
+        kwargs.update(
+            {
+                "betas": (args.optimizer.beta1, args.optimizer.beta2),
+                "eps": args.optimizer.epsilon,
+            }
+        )
         logger.info("Optimizer ADAM is being used")
     elif optimizer_name == "rmsprop":
         optimizer_function = optim.RMSprop
-        kwargs |= {"eps": args.optimizer.epsilon}
+        kwargs.update({"eps": args.optimizer.epsilon})
         logger.info("Optimizer RMSprop is being used")
     elif optimizer_name == "adabound":
         optimizer_function = AdaBound
-        kwargs |= {
-            "eps": args.optimizer.epsilon,
-            "betas": (args.optimizer.beta1, args.optimizer.beta2),
-        }
+        kwargs.update(
+            {
+                "eps": args.optimizer.epsilon,
+                "betas": (args.optimizer.beta1, args.optimizer.beta2),
+            }
+        )
         logger.info("Optimizer AdaBound is being used")
     elif optimizer_name == "adamw":
         optimizer_function = optim.AdamW
-        kwargs |= {
-            "eps": args.optimizer.epsilon,
-            "betas": (args.optimizer.beta1, args.optimizer.beta2),
-        }
+        kwargs.update(
+            {
+                "eps": args.optimizer.epsilon,
+                "betas": (args.optimizer.beta1, args.optimizer.beta2),
+            }
+        )
         logger.info("Optimizer AdamW is being used")
     else:
         raise ValueError(f"Unsupported optimizer name: {args.optimizer.name}")
@@ -64,7 +78,14 @@ def make_optimizer(args: Namespace, params: Union[List[dict], Any]) -> Optimizer
     return optimizer_function(params, **kwargs)
 
 
-class ConstantLR(_LRScheduler):
+class ConstantLR(LRScheduler):
+    """Constant learning rate scheduler.
+
+    Args:
+        optimizer (Optimizer): Optimizer instance.
+        last_epoch (int, optional): Last epoch number. Default is -1.
+    """
+
     def __init__(self, optimizer: Optimizer, last_epoch: int = -1) -> None:
         super().__init__(optimizer, last_epoch)
 
@@ -77,7 +98,18 @@ def make_scheduler(
     optimizer: Optimizer,
     iters_per_epoch: int = None,
     last_epoch: int = -1,
-) -> _LRScheduler:
+) -> LRScheduler:
+    """Create a learning rate scheduler based on provided arguments.
+
+    Args:
+        args (Namespace): Arguments containing scheduler parameters.
+        optimizer (Optimizer): Optimizer instance.
+        iters_per_epoch (int, optional): Number of iterations per epoch. Default is None.
+        last_epoch (int, optional): Last epoch number. Default is -1.
+
+    Returns:
+        _LRScheduler: Learning rate scheduler instance.
+    """
     scheduler_type = args.scheduler.name.lower()
 
     if scheduler_type == "step":
@@ -100,7 +132,6 @@ def make_scheduler(
         scheduler.__setattr__("__interval__", "epoch")
         logger.info("Loading Multi step scheduler")
     elif scheduler_type == "poly_warmstartup":
-        # https://github.com/Tony-Y/pytorch_warmup
         scheduler = WarmupPolyLR(
             optimizer,
             power=0.9,

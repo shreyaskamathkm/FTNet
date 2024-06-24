@@ -15,8 +15,6 @@ from ..models import encoder as enc
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["SegBaseModel"]
-
 
 def str_to_class(classname: str) -> type:
     """Convert a string to a class object.

@@ -19,8 +19,6 @@ from .dcc_net_decoder import BasicBlock, FeatureTransverseDecoder
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["get_ftnet", "FNet"]
-
 
 class FNet(SegBaseModel):
     def __init__(
@@ -95,7 +93,7 @@ class FNet(SegBaseModel):
         out.append(edge)
 
         class_maps = self.last_layer(torch.cat(out, 1))
-        return class_maps, edge
+        return (class_maps, edge)
 
 
 def get_ftnet(
@@ -105,7 +103,7 @@ def get_ftnet(
     pretrained_base: bool = False,
     **kwargs,
 ) -> FNet:
-    from ...data import datasets
+    from ...core.dataloaders import datasets
 
     return FNet(
         nclass=datasets[dataset.lower()].NUM_CLASS,

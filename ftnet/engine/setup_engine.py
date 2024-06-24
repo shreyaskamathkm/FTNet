@@ -6,13 +6,13 @@ from lightning.pytorch.callbacks import Callback, LearningRateMonitor, TQDMProgr
 from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
 from ..cfg import FTNetArgs
-from ..helper import checkpoint
+from ..helper import Checkpoint
 from .thermal_edge_trainer import SegmentationLightningModel
 
 logger = logging.getLogger(__name__)
 
 
-def setup_pl_loggers(args: FTNetArgs, ckp: checkpoint) -> tuple[TensorBoardLogger, WandbLogger]:
+def _setup_pl_loggers(args: FTNetArgs, ckp: Checkpoint) -> tuple[TensorBoardLogger, WandbLogger]:
     logger.debug("Setting up  TensorBoard logger")
     """Setup TensorBoard and Weights & Biases loggers."""
     tensorboard_logger = TensorBoardLogger(
@@ -45,7 +45,7 @@ def setup_pl_loggers(args: FTNetArgs, ckp: checkpoint) -> tuple[TensorBoardLogge
     return tensorboard_logger, wandb_logger
 
 
-def setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: checkpoint) -> List[Callback]:
+def _setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: Checkpoint) -> List[Callback]:
     """Setup checkpoint directory and callbacks."""
     logger.debug(" Setting up Callbacks")
 
@@ -55,10 +55,10 @@ def setup_checkpoints_and_callbacks(args: FTNetArgs, ckp: checkpoint) -> List[Ca
     ]
 
 
-def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
+def train_model(args: FTNetArgs, ckp: Checkpoint) -> None:
     """Train the model."""
-    tensorboard_logger, wandb_logger = setup_pl_loggers(args, ckp)
-    checkpoint_callbacks = setup_checkpoints_and_callbacks(args, ckp)
+    tensorboard_logger, wandb_logger = _setup_pl_loggers(args, ckp)
+    checkpoint_callbacks = _setup_checkpoints_and_callbacks(args, ckp)
 
     model = SegmentationLightningModel(args=args, ckp=ckp)
 
@@ -85,7 +85,7 @@ def train_model(args: FTNetArgs, ckp: checkpoint) -> None:
     trainer.fit(model)
 
 
-def test_model(args: FTNetArgs, ckp: checkpoint) -> None:
+def test_model(args: FTNetArgs, ckp: Checkpoint) -> None:
     """Test the model with a specific checkpoint."""
     if not args.checkpoint.test_checkpoint.exists():
         raise ValueError("Provide the checkpoint for testing")
@@ -93,7 +93,7 @@ def test_model(args: FTNetArgs, ckp: checkpoint) -> None:
     logger.info(f"Loading from {str(args.checkpoint.test_checkpoint)}")
 
     model = SegmentationLightningModel.load_from_checkpoint(
-        checkpoint_path=args.checkpoint.test_checkpoint, args=args, ckp=ckp, train=False
+        checkpoint_path=args.checkpoint.test_checkpoint, args=args, ckp=ckp, strict=True
     )
 
     trainer = Trainer(
@@ -103,7 +103,7 @@ def test_model(args: FTNetArgs, ckp: checkpoint) -> None:
         inference_mode=True,
         max_epochs=1,
         fast_dev_run=False,
-        deterministic=True,
+        deterministic="warn" if args.task.mode == "test" else True,
         use_distributed_sampler=False,
     )
 

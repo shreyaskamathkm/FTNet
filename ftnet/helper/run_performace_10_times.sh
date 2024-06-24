@@ -1,6 +1,10 @@
 #!/bin/bash
+
+## Example run  bash ftnet/helper/run_performace_10_times.sh
+PYTHON_SCRIPT="python -m ftnet.helper.performance_test"
+
 for (( c=1; c<=10; c++ ))
 do
-   echo "Welcome $c times"
-   python performance_test.py --model deeplabv3 --backbone resnet50
+   echo "Running iteration $c"
+   $PYTHON_SCRIPT -c ./ftnet/cfg/infer.toml
 done

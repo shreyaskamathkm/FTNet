@@ -20,23 +20,6 @@ root_pretrained_path.mkdir(parents=True, exist_ok=True)
 os.environ["TORCH_HOME"] = str(root_pretrained_path)
 
 
-__all__ = [
-    "ResNet",
-    "resnet18",
-    "resnet34",
-    "resnet50",
-    "resnet101",
-    "resnet152",
-    "resnet152_v1s",
-    "resnet101_v1s",
-    "resnet50_v1s",
-    "resnest50",
-    "resnest101",
-    "resnest200",
-    "resnest269",
-]
-
-
 model_urls = {
     "resnet18": "https://download.pytorch.org/models/resnet18-5c106cde.pth",
     "resnet34": "https://download.pytorch.org/models/resnet34-333f7ec4.pth",

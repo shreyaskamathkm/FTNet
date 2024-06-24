@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #####################################################################################################################################################################
 # FTNet                                                                                                                                                             #
@@ -9,14 +9,14 @@
 import lightning as pl
 
 from .cfg import FTNetArgs, parse_args
-from .engine.setup_engine import test_model, train_model
-from .helper import checkpoint, collect_env_info, get_rank, setup_logger
+from .engine import test_model, train_model
+from .helper import Checkpoint, collect_env_info, get_rank, setup_logger
 
 
 def main() -> None:
     args = parse_args()
     args = FTNetArgs.from_config(args.config)
-    ckp = checkpoint(args.checkpoint.save_dir, test=args.task.mode in ("test", "infer"))
+    ckp = Checkpoint(args.checkpoint.save_dir, test=args.task.mode in ("test", "infer"))
 
     logger = setup_logger(
         save_dir=ckp.get_path("logs"),

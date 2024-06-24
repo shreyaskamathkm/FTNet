@@ -6,9 +6,7 @@ import torch
 import torch.nn as nn
 from lightning.pytorch.callbacks import ModelCheckpoint
 
-from ftnet.helper.img_saving_helper import save_all_images, save_pred
-from ftnet.helper.utils import as_numpy
-
+from ..helper import as_numpy, save_all_images, save_pred
 from .base_trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
@@ -94,7 +92,7 @@ class SegmentationLightningModel(BaseTrainer):
                 prediction=as_numpy(class_map),
                 edge_map=as_numpy(edge_map),
                 save_dir=self.ckp.get_path("segmented_images/val/"),
-                filename=filename,
+                filenames=filename,
                 current_epoch=self.current_epoch,
                 dataset=self.val_dataset,
                 save_images_as_subplots=self.args.checkpoint.save_images_as_subplots,
@@ -118,28 +116,32 @@ class SegmentationLightningModel(BaseTrainer):
                 target,
                 loss_val,
             )
-            class_map = self._upsample_output(class_map, target)
-            edge_map = self._upsample_output(edge_map, target)
+            class_map = self._upsample_output(class_map, target=target)
+            edge_map = self._upsample_output(edge_map, target=target)
 
             if self.args.checkpoint.save_images:
                 save_all_images(
                     original=as_numpy(images),
                     groundtruth=as_numpy(target),
                     prediction=as_numpy(class_map),
-                    edge_map=as_numpy(edge_map.squeeze()),
-                    save_dir=self.ckp.get_path("segmented_images/test/"),
-                    filename=filename,
+                    edge_map=as_numpy(edge_map),
+                    save_dir=self.ckp.get_path("segmented_images"),
+                    filenames=filename,
                     current_epoch="",
-                    dataset=self.val_dataset,
+                    dataset=self.test_dataset,
                     save_images_as_subplots=self.args.checkpoint.save_images_as_subplots,
                 )
 
         elif self.args.task.mode == "infer":
-            images, filename = batch
+            images, filename, width, height = batch
             output = self.model(images)
             class_map, edge_map = output
             class_map = class_map[0] if isinstance(class_map, (tuple, list)) else class_map
-            class_map = torch.argmax(class_map.long(), 1)
+            class_map = self._upsample_output(class_map, width=width, height=height)
+            edge_map = self._upsample_output(edge_map, width=width, height=height)
+
+            class_map = torch.argmax(class_map.long(), 1).unsqueeze(0)
+
             save_pred(
                 save_dir=self.ckp.get_path("infer"),
                 filename=filename,

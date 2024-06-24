@@ -15,7 +15,6 @@ from .data_attributes import ImageSize, ImageSizes
 from .transforms import ImageTransform, NormalizationTransform, ResizingTransformations
 
 logger = logging.getLogger(__name__)
-__all__ = ["SegmentationDataset"]
 
 
 class SegmentationDataset:

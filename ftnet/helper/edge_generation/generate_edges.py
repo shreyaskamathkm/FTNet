@@ -1,6 +1,6 @@
 """
-Example run:   python -m ftnet.data.edge_generation.generate_edges   --datasets <dataset name to generate edges>  --save-path <path to save dataset> --radius <corresponding radii>
-python -m ftnet.data.edge_generation.generate_edges  --datasets cityscape,soda,scutseg,mfn --save-path ./data/processed_dataset/ --radius 2,1,1,1
+Example run:   python -m ftnet.helper.edge_generation.generate_edges   --datasets <dataset name to generate edges>  --save-path <path to save dataset> --radius <corresponding radii>
+python -m ftnet.helper.edge_generation.generate_edges  --datasets cityscape,soda,scutseg,mfn --save-path ./data/processed_dataset/ --radius 2,1,1,1
 
 labels_path = ['cityscape/', 'soda/', 'scutseg/', 'mfn/']
 radius = [2, 1, 1, 1]

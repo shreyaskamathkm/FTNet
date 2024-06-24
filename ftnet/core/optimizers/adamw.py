@@ -11,8 +11,6 @@ import torch
 from torch import Tensor
 from torch.optim import Optimizer
 
-__all__ = ["AdamW"]
-
 
 class AdamW(Optimizer):
     """Implements Adam algorithm with weight decay fix.

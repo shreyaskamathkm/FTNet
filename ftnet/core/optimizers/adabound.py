@@ -11,8 +11,6 @@ import torch
 from torch import Tensor
 from torch.optim import Optimizer
 
-__all__ = ["AdaBound", "AdaBoundW"]
-
 
 class AdaBound(Optimizer):
     """Implements AdaBound algorithm.

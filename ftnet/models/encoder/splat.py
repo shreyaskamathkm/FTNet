@@ -16,9 +16,6 @@ class DropBlock2D:
         raise NotImplementedError
 
 
-__all__ = ["SplAtConv2d"]
-
-
 class SplAtConv2d(Module):
     """Split-Attention Conv2d."""
 

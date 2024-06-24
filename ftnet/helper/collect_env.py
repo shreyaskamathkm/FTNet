@@ -1,14 +1,10 @@
-"""
-Adapted from
-https://github.com/facebookresearch/detectron2/blob/main/detectron2/utils/collect_env.py
-"""
-
 import importlib
 import os
 import re
 import subprocess
 import sys
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 import PIL
@@ -16,30 +12,47 @@ import torch
 import torchvision
 from tabulate import tabulate
 
-__all__ = ["collect_env_info"]
 
+def collect_torch_env() -> str:
+    """Collects and returns environment information related to PyTorch.
 
-def collect_torch_env():
+    Returns:
+        str: Environment information related to PyTorch.
+    """
     try:
         import torch.__config__
 
         return torch.__config__.show()
     except ImportError:
-        # compatible with older versions of pytorch
+        # Compatible with older versions of PyTorch
         from torch.utils.collect_env import get_pretty_env_info
 
         return get_pretty_env_info()
 
 
-def get_env_module():
-    var_name = "FTNET2_ENV_MODULE"
+def get_env_module() -> tuple:
+    """Retrieves and returns environment module information.
+
+    Returns:
+        tuple: Variable name and its corresponding environment value.
+    """
+    var_name = "FTNET_ENV_MODULE"
     return var_name, os.environ.get(var_name, "<not set>")
 
 
-def detect_compute_compatibility(CUDA_HOME, so_file):
+def detect_compute_compatibility(CUDA_HOME: Path, so_file: Path) -> str:
+    """Detects and returns compute compatibility of a CUDA-enabled device.
+
+    Args:
+        CUDA_HOME (Path): Path to CUDA installation directory.
+        so_file (Path): Path to the shared object (SO) file.
+
+    Returns:
+        str: Compute compatibility information.
+    """
     try:
-        cuobjdump = os.path.join(CUDA_HOME, "bin", "cuobjdump")
-        if os.path.isfile(cuobjdump):
+        cuobjdump = CUDA_HOME / "bin" / "cuobjdump"
+        if cuobjdump.exists():
             output = subprocess.check_output(f"'{cuobjdump}' --list-elf '{so_file}'", shell=True)
             output = output.decode("utf-8").strip().split("\n")
             arch = []
@@ -49,30 +62,35 @@ def detect_compute_compatibility(CUDA_HOME, so_file):
             arch = sorted(set(arch))
             return ", ".join(arch)
 
-        return so_file + "; cannot find cuobjdump"
+        return f"{so_file}; cannot find cuobjdump"
     except Exception:
-        # unhandled failure
-        return so_file
+        # Unhandled failure
+        return str(so_file)
 
 
-def collect_env_info():
-    has_gpu = torch.cuda.is_available()  # true for both CUDA & ROCM
+def collect_env_info() -> str:
+    """Collects and returns comprehensive environment information.
+
+    Returns:
+        str: Comprehensive environment information.
+    """
+    has_gpu = torch.cuda.is_available()  # True for both CUDA & ROCM
     torch_version = torch.__version__
 
     # NOTE that CUDA_HOME/ROCM_HOME could be None even when CUDA runtime libs are functional
     from torch.utils.cpp_extension import CUDA_HOME, ROCM_HOME
 
     has_rocm = False
-    if (getattr(torch.version, "hip", None) is not None) and (ROCM_HOME is not None):
+    if getattr(torch.version, "hip", None) is not None and ROCM_HOME is not None:
         has_rocm = True
     has_cuda = has_gpu and (not has_rocm)
 
     data = []
-    data.append(("sys.platform", sys.platform))  # check-template.yml depends on it
+    data.append(("sys.platform", sys.platform))  # Check-template.yml depends on it
     data.append(("Python", sys.version.replace("\n", "")))
     data.append(("numpy", np.__version__))
     data.append(get_env_module())
-    data.append(("PyTorch", torch_version + " @" + os.path.dirname(torch.__file__)))
+    data.append(("PyTorch", f"{torch_version} @{os.path.dirname(torch.__file__)}"))
     data.append(("PyTorch debug build", torch.version.debug))
     try:
         data.append(("torch._C._GLIBCXX_USE_CXX11_ABI", torch._C._GLIBCXX_USE_CXX11_ABI))
@@ -91,21 +109,17 @@ def collect_env_info():
             data.append(("GPU " + ",".join(devids), name))
 
         if has_rocm:
-            msg = " - invalid!" if not (ROCM_HOME and os.path.isdir(ROCM_HOME)) else ""
+            msg = " - invalid!" if not (ROCM_HOME and Path(ROCM_HOME).is_dir()) else ""
             data.append(("ROCM_HOME", str(ROCM_HOME) + msg))
         else:
             try:
-                from torch.utils.collect_env import (
-                    get_nvidia_driver_version,
-                )
-                from torch.utils.collect_env import (
-                    run as _run,
-                )
+                from torch.utils.collect_env import get_nvidia_driver_version
+                from torch.utils.collect_env import run as _run
 
                 data.append(("Driver version", get_nvidia_driver_version(_run)))
             except Exception:
                 pass
-            msg = " - invalid!" if not (CUDA_HOME and os.path.isdir(CUDA_HOME)) else ""
+            msg = " - invalid!" if not (CUDA_HOME and Path(CUDA_HOME).is_dir()) else ""
             data.append(("CUDA_HOME", str(CUDA_HOME) + msg))
 
             cuda_arch_list = os.environ.get("TORCH_CUDA_ARCH_LIST", None)
@@ -115,10 +129,7 @@ def collect_env_info():
 
     try:
         data.append(
-            (
-                "torchvision",
-                str(torchvision.__version__) + " @" + os.path.dirname(torchvision.__file__),
-            )
+            ("torchvision", f"{torchvision.__version__} @{os.path.dirname(torchvision.__file__)}")
         )
         if has_cuda:
             try:
@@ -150,12 +161,14 @@ def collect_env_info():
         data.append(("cv2", cv2.__version__))
     except (ImportError, AttributeError):
         data.append(("cv2", "Not found"))
+
     env_str = tabulate(data) + "\n"
     env_str += collect_torch_env()
     return env_str
 
 
-def test_nccl_ops():
+def test_nccl_ops() -> None:
+    """Tests NCCL operations for CUDA devices."""
     num_gpu = torch.cuda.device_count()
     if os.access("/tmp", os.W_OK):
         import torch.multiprocessing as mp
@@ -166,7 +179,14 @@ def test_nccl_ops():
         print("NCCL succeeded.")
 
 
-def _test_nccl_worker(rank, num_gpu, dist_url):
+def _test_nccl_worker(rank: int, num_gpu: int, dist_url: str) -> None:
+    """Worker function for testing NCCL connectivity.
+
+    Args:
+        rank (int): Rank of the current process.
+        num_gpu (int): Total number of GPUs.
+        dist_url (str): Distributed URL for initialization.
+    """
     import torch.distributed as dist
 
     dist.init_process_group(backend="NCCL", init_method=dist_url, rank=rank, world_size=num_gpu)
@@ -174,6 +194,7 @@ def _test_nccl_worker(rank, num_gpu, dist_url):
 
 
 def main() -> None:
+    """Main function to collect and print environment information."""
     global x
 
     print(collect_env_info())
@@ -192,3 +213,7 @@ def main() -> None:
                 )
         if num_gpu > 1:
             test_nccl_ops()
+
+
+if __name__ == "__main__":
+    main()

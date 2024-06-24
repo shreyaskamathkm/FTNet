@@ -59,7 +59,9 @@ class SCUTSEGDataset(SegmentationDataset):
         if self.mode in ("test", "testval"):
             self.split = "val"  # ScutSEG dataset does not have validation
 
-        self.images, self.mask_paths, self.edge_paths = FilePathHandler._get_pairs(root, split)
+        self.images, self.mask_paths, self.edge_paths = FilePathHandler._get_pairs(
+            root, self.split
+        )
 
         if len(self.images) != len(self.mask_paths):
             raise ValueError("Mismatch between images and masks")

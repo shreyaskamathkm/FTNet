@@ -4,6 +4,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Callable, List, Union
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,16 +13,17 @@ from torchmetrics import ConfusionMatrix as pl_ConfusionMatrix
 from torchmetrics.aggregation import MeanMetric
 from torchmetrics.classification import MulticlassJaccardIndex
 
-from ftnet.helper.model_helpers import check_mismatch
-
-from ..core.data.samplers import (
+from ..core.dataloaders import get_segmentation_dataset
+from ..core.loss import get_segmentation_loss
+from ..core.samplers import (
     make_batch_data_sampler,
     make_data_sampler,
     make_multiscale_batch_data_sampler,
 )
-from ..core.loss import get_segmentation_loss
-from ..data import get_segmentation_dataset
-from ..helper.model_helpers import save_model_summary
+from ..helper.conversion import to_python_float
+from ..helper.img_helpers import plot_confusion_matrix
+from ..helper.json_extension import save_to_json_pretty
+from ..helper.model_helpers import check_mismatch, save_model_summary
 from ..helper.optimizer_scheduler_helper import make_optimizer, make_scheduler
 from ..models import get_segmentation_model
 
@@ -33,7 +35,6 @@ class BaseTrainer(LightningModule):
         self,
         args: Namespace,
         ckp: Callable,
-        train: bool = True,
         **kwargs: Any,
     ) -> None:
         """Initialize the BaseTrainer with arguments for configuration.
@@ -62,11 +63,10 @@ class BaseTrainer(LightningModule):
             num_blocks=self.args.model.num_blocks,
         )
 
-        if train:
+        self._preload_complete_data()
+
+        if self.args.task.mode == "train":
             save_model_summary(self.model, Path(self.ckp.get_path("logs")))  # type: ignore
-
-            self._preload_complete_data()
-
             if (
                 self.args.checkpoint.pretrain_checkpoint
                 and self.args.checkpoint.pretrain_checkpoint.exists()
@@ -74,37 +74,49 @@ class BaseTrainer(LightningModule):
                 self.load_weights_from_checkpoint(
                     self.args.trainer.pretrain_checkpoint, strict=False
                 )
-
+        if self.args.task.mode in ("train", "test"):
             self.criterion = get_segmentation_loss(
                 self.args.model.name,
                 loss_weight=self.args.trainer.loss_weight,
-                ignore_index=self.train_dataset.IGNORE_INDEX,
+                ignore_index=self.test_dataset.IGNORE_INDEX
+                if self.args.task.mode == "test"
+                else self.train_dataset.IGNORE_INDEX,
             )
 
     def _preload_complete_data(self):
         """Preloads the complete training and validation datasets."""
+        if self.args.task.mode == "train":
+            data_kwargs = {
+                "root": self.args.dataset.dataset_path,
+                "base_size": self.args.dataset.base_size,
+                "crop_size": self.args.dataset.crop_size,
+            }
 
-        data_kwargs = {
-            "root": self.args.dataset.dataset_path,
-            "base_size": self.args.dataset.base_size,
-            "crop_size": self.args.dataset.crop_size,
-        }
-
-        self.train_dataset = get_segmentation_dataset(
-            name=self.args.dataset.name,
-            split="train",
-            mode="train",
-            sobel_edges=False,
-            **data_kwargs,
-        )
-
-        if not self.args.task.train_only:
-            self.val_dataset = get_segmentation_dataset(
-                self.args.dataset.name,
-                split="val",
-                mode="val",
+            self.train_dataset = get_segmentation_dataset(
+                name=self.args.dataset.name,
+                split="train",
+                mode="train",
                 sobel_edges=False,
                 **data_kwargs,
+            )
+
+            if not self.args.task.train_only:
+                self.val_dataset = get_segmentation_dataset(
+                    self.args.dataset.name,
+                    split="val",
+                    mode="val",
+                    sobel_edges=False,
+                    **data_kwargs,
+                )
+
+        if self.args.task.mode == "test":
+            self.test_dataset = get_segmentation_dataset(
+                self.args.dataset.name,
+                split="test",
+                mode="testval",
+                root=self.args.dataset.dataset_path,
+                base_size=self.args.dataset.base_size,
+                crop_size=None,
             )
 
     def configure_optimizers(self):
@@ -237,16 +249,7 @@ class BaseTrainer(LightningModule):
             torch.utils.data.DataLoader: The test DataLoader.
         """
         if self.args.task.mode == "test":
-            logger.debug(" Running Inference Only")
-
-            self.test_dataset = get_segmentation_dataset(
-                self.args.dataset.name,
-                split="test",
-                mode="test",
-                root=self.args.dataset.dataset_path,
-                base_size=None,
-                crop_size=None,
-            )
+            logger.debug(" Running Testing")
             self.load_metrics(
                 mode="test",
                 num_class=self.test_dataset.NUM_CLASS,
@@ -256,11 +259,15 @@ class BaseTrainer(LightningModule):
         elif self.args.task.mode == "infer":
             logger.debug(" Running Inference Only")
             self.test_dataset = get_segmentation_dataset(
-                "load_image", root=self.args.dataset.dataset_path, dataset=self.args.dataset.name
+                "load_image",
+                root=self.args.dataset.dataset_path,
+                dataset=self.args.dataset.name,
+                base_size=self.args.dataset.base_size,
             )
 
         return torch.utils.data.DataLoader(
             dataset=self.test_dataset,
+            batch_size=self.args.trainer.test_batch_size,
             num_workers=self.args.compute.workers,
             pin_memory=True,
         )
@@ -329,6 +336,7 @@ class BaseTrainer(LightningModule):
             mode (str): The mode for which to log metrics (train, val, test).
         """
         confusion_matrix = getattr(self, f"{mode}_confmat").compute()
+
         iou = getattr(self, f"{mode}_IOU").compute()
         accuracy = self._compute_accuracy(confusion_matrix)
 
@@ -339,6 +347,17 @@ class BaseTrainer(LightningModule):
             f"{mode}_edge_accuracy": getattr(self, f"{mode}_edge_accuracy").compute(),
             f"{mode}_loss": getattr(self, f"{mode}_loss").compute(),
         }
+
+        per_class_IOU = iou.cpu().numpy() * 100
+
+        if mode == "test":
+            plot_confusion_matrix(
+                save_dir=self.ckp.get_path("logs"),
+                confusion_matrix=confusion_matrix.cpu().numpy(),
+                class_names=self.test_dataset.class_names,
+            )
+            save_to_json_pretty(log_dict, path=self.ckp.get_path("logs") / "Average.txt")
+            np.savetxt(self.ckp.get_path("logs") / "per_class_iou.txt", per_class_IOU)
 
         self.log_dict(log_dict, prog_bar=True)
         self._reset_metrics(mode)
@@ -354,7 +373,13 @@ class BaseTrainer(LightningModule):
         getattr(self, f"{mode}_edge_accuracy").reset()
         getattr(self, f"{mode}_loss").reset()
 
-    def _upsample_output(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def _upsample_output(
+        self,
+        output: torch.Tensor,
+        target: Union[torch.Tensor, None] = None,
+        width: int = None,
+        height: int = None,
+    ) -> torch.Tensor:
         """Upsamples the output tensor to match the target tensor size if
         necessary.
 
@@ -365,13 +390,21 @@ class BaseTrainer(LightningModule):
         Returns:
             torch.Tensor: The upsampled output tensor.
         """
-        if output.shape != target.shape:
+        if target is not None and output.shape != target.shape:
             return F.interpolate(
                 output,
                 size=(target.shape[1], target.shape[2]),
                 mode="bilinear",
                 align_corners=True,
             )
+        if width and height:
+            return F.interpolate(
+                output,
+                size=(to_python_float(height), to_python_float(width)),
+                mode="bilinear",
+                align_corners=True,
+            )
+
         return output
 
     def _compute_accuracy(self, confusion_matrix: torch.Tensor) -> torch.Tensor:

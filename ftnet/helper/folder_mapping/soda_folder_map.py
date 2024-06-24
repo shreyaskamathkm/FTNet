@@ -1,6 +1,6 @@
 """
-Example run:   python -m ftnet.folder_mapping.utils.soda_folder_map   --input-image-path <path to original dataset>  --save-path <path to save dataset>
-python -m ftnet.folder_mapping.utils.soda_folder_map  --input-image-path ./data/original/SODA/InfraredSemanticLabel/ --save-path ./data/processed_dataset/
+Example run:   python -m ftnet.helper.folder_mapping.soda_folder_map   --input-image-path <path to original dataset>  --save-path <path to save dataset>
+python -m ftnet.helper.folder_mapping.soda_folder_map  --input-image-path ./data/original/SODA/InfraredSemanticLabel/ --save-path ./data/processed_dataset/
 """
 
 import argparse
