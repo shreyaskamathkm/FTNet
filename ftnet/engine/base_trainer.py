@@ -267,7 +267,7 @@ class BaseTrainer(LightningModule):
 
         return torch.utils.data.DataLoader(
             dataset=self.test_dataset,
-            batch_size=self.args.trainer.test_batch_size,
+            batch_size=self.args.trainer.test_batch_size if self.args.task.mode == "test" else 1,
             num_workers=self.args.compute.workers,
             pin_memory=True,
         )
@@ -397,7 +397,7 @@ class BaseTrainer(LightningModule):
                 mode="bilinear",
                 align_corners=True,
             )
-        if width and height:
+        if to_python_float(width) and to_python_float(height):
             return F.interpolate(
                 output,
                 size=(to_python_float(height), to_python_float(width)),

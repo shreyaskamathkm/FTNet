@@ -1,0 +1,35 @@
+[task]
+mode = "test"
+train_only=false
+debug = false
+
+[trainer]
+loss_weight = 20
+test_batch_size = 2
+
+[model]
+no_of_filters = 128
+edge_extracts = [3]
+num_blocks = 2
+name = "ftnet"
+pretrained_base = false
+backbone = "resnext50_32x4d"
+dilation = false
+
+[dataset]
+name = "soda"
+dataset_path='./data/processed_dataset/soda/'
+
+[checkpoint]
+save_dir = './results/soda'
+test_checkpoint = "./Trained_Models/ftnet_resnext50_32x4d_filters_128_edge_3_blocks_2/rev-2/SODA Dataset/ckpt/val_mIOU=0.6079.ckpt"
+save_images = true
+save_images_as_subplots = false
+
+[compute]
+devices = 1
+num_nodes = 1
+accelerator = "auto"
+strategy = "auto"
+seed = 0
+workers = 1

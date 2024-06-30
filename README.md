@@ -8,6 +8,8 @@
 
 This repository is an official PyTorch implementation of the paper **" [FTNet: Feature Transverse Network for Thermal Semantic Segmentation](https://ieeexplore.ieee.org/abstract/document/9585453) "**
 
+Note: To reproduce the same results as that provided in the paper, please use the codebase from the `main` branch. The develop branches uses a different CUDA, Pytorch and GPU so the results might vary a bit.
+
 ![Main Figure](./artifacts/main_figure.png)
 We provide scripts for the models from our paper. You can train your own model from scratch, or use pretrained models for testing.
 
@@ -129,7 +131,7 @@ Once the extracting and edge generation is completed, the dataset looks similar 
 │   	        ├── train
 │   	        ├── val
 │   	        └── test
-│   ├── SODA
+│   ├── soda
 │           ├── edges
 │   	        ├── train
 │   	        ├── val
@@ -142,7 +144,7 @@ Once the extracting and edge generation is completed, the dataset looks similar 
 │   	        ├── train
 │   	        ├── val
 │   	        └── test
-│   ├── MFNDataset
+│   ├── mfn
 │           ├── edges
 │   	        ├── train
 │   	        ├── val
@@ -155,7 +157,7 @@ Once the extracting and edge generation is completed, the dataset looks similar 
 │   	        ├── train
 │   	        ├── val
 │   	        └── test
-│   ├── SCUTSEG
+│   ├── scutseg
 │           ├── edges
 │   	        ├── train
 │   	        └── val
@@ -168,11 +170,22 @@ Once the extracting and edge generation is completed, the dataset looks similar 
 └── ...
 ```
 
-The new processed dataset will be used for training purposes. You can now train FTNet by yourself. Please update the [toml](ftnet/cfg/) files accordingly.
+The new processed dataset will be used for training purposes. You can now train FTNet by yourself. The `develop` branch has not been tested for training purposes. Please use the `main` branch to perform training. Please update the [toml](ftnet/cfg/) files accordingly.
 
 To run the code
 '''
+Training:
+python -m ftnet -c ./ftnet/cfg/train_mfn.toml
+'''
 
+'''
+Testing:
+python -m ftnet -c ./ftnet/cfg/test_mfn.toml
+'''
+
+'''
+Infer on a folder of images:
+python -m ftnet -c ./ftnet/cfg/infer_images.toml
 '''
 
 <!-- LICENSE -->

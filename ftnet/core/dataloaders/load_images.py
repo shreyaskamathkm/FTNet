@@ -5,6 +5,7 @@ https://github.com/dmlc/gluon-cv/blob/master/gluoncv/data/cityscapes.py
 
 import logging
 from pathlib import Path
+from typing import List
 
 from .base_dataloader import SegmentationDataset
 from .cityscapes_thermal import CityscapesCombineThermalDataset
@@ -33,6 +34,7 @@ class LoadImages(SegmentationDataset):
         dataset: str = "soda",
         mode: str = "infer",
         sobel_edges: bool = False,
+        base_size: List[List[int]] = [[520, 520]],
     ) -> None:
         """Initialize the dataset.
 
@@ -45,7 +47,7 @@ class LoadImages(SegmentationDataset):
         Raises:
             ValueError: If the dataset name is not recognized.
         """
-        super().__init__(root, None, mode, None, None, sobel_edges)
+        super().__init__(root, None, mode, base_size, None, sobel_edges)
 
         assert root.exists(), "Error: data root path is wrong!"
 

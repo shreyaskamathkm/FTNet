@@ -144,7 +144,7 @@ class SegmentationLightningModel(BaseTrainer):
 
             save_pred(
                 save_dir=self.ckp.get_path("infer"),
-                filename=filename,
+                filename=filename[0],
                 prediction=as_numpy(class_map.squeeze()),
                 edges=as_numpy(edge_map.squeeze()),
                 dataset=self.args.dataset.name,

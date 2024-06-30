@@ -92,9 +92,15 @@ def save_all_images(
     base_path = save_dir / str(current_epoch) if current_epoch is not None else save_dir
     base_path.mkdir(parents=True, exist_ok=True)
 
+    pred_path = base_path / "Predictions"
+    pred_path.mkdir(parents=True, exist_ok=True)
+
+    edge_path = base_path / "Edges"
+    edge_path.mkdir(parents=True, exist_ok=True)
+
     for i, filename in enumerate(filenames):
-        pred_image_path = base_path / "Predictions" / Path(filename).with_suffix(".png")
-        edge_image_path = base_path / "Edges" / Path(filename).with_suffix(".png")
+        pred_image_path = pred_path / Path(filename).with_suffix(".png")
+        edge_image_path = edge_path / Path(filename).with_suffix(".png")
 
         if save_images_as_subplots:
             fig, axes = plt.subplots(1, 4, figsize=(14, 7))

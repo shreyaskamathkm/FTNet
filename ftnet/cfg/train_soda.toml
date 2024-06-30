@@ -20,7 +20,6 @@ dilation = false
 
 [dataset]
 name = "soda"
-# dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
 dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/soda'
 base_size = [[520,520]]
 crop_size = [[480,480]]

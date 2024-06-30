@@ -85,13 +85,17 @@ class SegmentationDataset:
         Returns:
             Optional[List[ImageSizes]]: List of ImageSizes objects or None.
         """
-        if self.mode not in ("testval", "infer"):
+        if self.mode in ("train", "val"):
             base_sizes = [ImageSize(base[0], base[1]) for base in self.base_size]
             crop_sizes = [ImageSize(crop[0], crop[1]) for crop in self.crop_size]
             return [
                 ImageSizes(base_size=base, crop_size=crop)
                 for crop, base in zip(crop_sizes, base_sizes)
             ]
+
+        if self.mode == "infer":
+            return [ImageSize(base[0], base[1]) for base in self.base_size]
+
         return None
 
     def __getitem__(self, index: Union[int, List, Tuple]):

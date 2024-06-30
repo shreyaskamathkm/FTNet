@@ -1,13 +1,10 @@
 [task]
-mode = "test"
+mode = "infer"
 train_only=false
 debug = false
 
 [trainer]
 loss_weight = 20
-# epochs = 100
-# train_batch_size = 16
-# val_batch_size = 16
 test_batch_size = 2
 
 [model]
@@ -21,16 +18,12 @@ dilation = false
 
 [dataset]
 name = "scutseg"
-# dataset_path = "/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/"
-dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/scutseg/'
-# base_size = [[520,520]]
-# crop_size = [[480,480]]
+dataset_path='/mnt/C26EDFBB6EDFA687/lab-work/FTNet/data/processed_dataset/scutseg/image/val'
+base_size = [[520,520]]
 
 
 [checkpoint]
-# resume = none
-# pretrain_checkpoint =
-save_dir = './results/scutseg'
+save_dir = './results/infer'
 test_checkpoint = "Trained_Models/ftnet_resnext50_32x4d_filters_128_edge_3_blocks_2/rev-2/ScutSegDataset/ckpt/val_mIOU=0.6711.ckpt"
 save_images = true
 save_images_as_subplots = false
