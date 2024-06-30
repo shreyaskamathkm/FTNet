@@ -6,7 +6,7 @@
 
 # FTNet
 
-This repository is an official PyTorch implementation of the paper **" [FTNet: Feature Transverse Network for Thermal Semantic Segmentation](https://ieeexplore.ieee.org/abstract/document/9585453) "**
+This repository is an updated PyTorch implementation of the paper **" [FTNet: Feature Transverse Network for Thermal Semantic Segmentation](https://ieeexplore.ieee.org/abstract/document/9585453) "** This is still **WORK IN PROGRESS**!!!
 
 Note: To reproduce the same results as that provided in the paper, please use the codebase from the `main` branch. The develop branches uses a different CUDA, Pytorch and GPU so the results might vary a bit.
 
