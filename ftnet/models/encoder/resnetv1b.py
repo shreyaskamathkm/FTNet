@@ -15,7 +15,7 @@ import torch.utils.model_zoo as model_zoo
 from ...helper.model_helpers import check_mismatch
 from .splat import SplAtConv2d
 
-root_pretrained_path = Path.cwd() / "pretrained_models"
+root_pretrained_path = Path(os.environ.get("FTNET_PRETRAINED_DIR", Path(__file__).parents[3] / "pretrained_models"))
 root_pretrained_path.mkdir(parents=True, exist_ok=True)
 os.environ["TORCH_HOME"] = str(root_pretrained_path)
 

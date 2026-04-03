@@ -73,11 +73,11 @@ def total_gradient(parameters: Any) -> float:
 
 
 def print_network(net: nn.Module) -> None:
-    """Print the network architecture and the total number of parameters.
+    """Log the network architecture and the total number of parameters.
 
     Args:
-        net (nn.Module): The network to print.
+        net (nn.Module): The network to log.
     """
     num_params = sum(param.numel() for param in net.parameters())
-    print(net)
-    print(f"Total number of parameters: {num_params / (1000**2)} M")
+    logger.info(net)
+    logger.info(f"Total number of parameters: {num_params / (1000**2):.2f} M")

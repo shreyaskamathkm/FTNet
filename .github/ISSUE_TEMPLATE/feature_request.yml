@@ -1,0 +1,46 @@
+name: Feature Request
+description: Suggest a new feature, dataset, or improvement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement! Please describe your idea clearly.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this solve? What is the current limitation?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the feature or change you'd like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative approaches you have considered or tried.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - New dataset support
+        - Model architecture
+        - Training / optimisation
+        - Inference / deployment
+        - Documentation
+        - CI / tooling
+        - Other
+    validations:
+      required: true
