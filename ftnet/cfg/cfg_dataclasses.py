@@ -127,6 +127,7 @@ class FTNetArgs(BaseModel):
             and not field_values.task.train_only
         ):
             raise ValueError(
-                "When train only mode is on, please update the dataset name to cityscapes_thermal_combine"
+                "Dataset 'cityscapes_thermal_combine' requires train_only=True. "
+                "Please set task.train_only = true in your config."
             )
         return field_values
